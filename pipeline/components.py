@@ -1847,10 +1847,10 @@ class LLMClient:
                 'provider': 'groq',
                 'description': 'Meta Llama 3.3 70B - High reasoning'
             },
-            'qwen-32b': {
-                'name': 'qwen-2.5-32b',
+            'qwen-32b': {  
+                'name': 'qwen/qwen3-32b', 
                 'provider': 'groq',
-                'description': 'Qwen 2.5 32B - Strong performance'
+                'description': 'Qwen 3 32B - Strong performance'
             }
         }
     
@@ -1864,7 +1864,7 @@ class LLMClient:
         
         # Auto-map old keys
         if 'mistral' in model_key or '3.1-70b' in model_key: model_key = 'llama-3.3-70b'
-        if 'gemma' in model_key or 'deepseek' in model_key: model_key = 'qwen-32b'
+        if 'qwen' in model_key or 'mixtral' in model_key: model_key = 'qwen-32b'
         
         if model_key not in self.models:
              model_key = 'llama-3.1-8b'

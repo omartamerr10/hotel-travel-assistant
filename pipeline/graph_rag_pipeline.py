@@ -42,7 +42,8 @@ class GraphRAGPipeline:
         self.entity_extractor = EntityExtractor(neo4j_driver=self.driver)
         
         print("   - Initializing Intent Classifier...")
-        self.intent_classifier = HotelIntentClassifier(neo4j_driver=self.driver)
+        from pipeline.intent_classifier import classify_hotel_intent
+        self.classify_intent = classify_hotel_intent  # ✅ Store the function directly
         
         print("   - Initializing Query Mapper...")
         self.query_mapper = QueryMapper()
@@ -62,13 +63,15 @@ class GraphRAGPipeline:
         
         print("✅ Pipeline initialized successfully!")
     
+    
     def process_query(self, 
-                     user_query: str,
-                     use_baseline: bool = True,
-                     use_embeddings: bool = True,
-                     llm_model: str = 'llama-3.1-8b',
-                     max_results: int = 10,
-                     verbose: bool = False) -> Dict[str, Any]:
+                      user_query: str,
+                      use_baseline: bool = True,
+                      use_embeddings: bool = True,
+                      semantic_model: str = 'sbert',  
+                      llm_model: str = 'llama-3.1-8b', 
+                      max_results: int = 10,
+                      verbose: bool = False) -> Dict[str, Any]:
         """
         Process a user query through the complete Graph-RAG pipeline.
         """
@@ -84,7 +87,7 @@ class GraphRAGPipeline:
         if verbose:
             print("\n📍 STEP 1: Classifying Intent...")
         
-        intent, confidence, debug_info = self.intent_classifier.classify(user_query)
+        intent = self.classify_intent(user_query)
         intent_str = intent.value if hasattr(intent, 'value') else str(intent)
         
         if verbose:
@@ -116,8 +119,18 @@ class GraphRAGPipeline:
                     intent_str, params
                 )
                 
+                # Safe template loading
+                template = ""
+                if hasattr(self.query_executor, '_load_query_templates'):
+                     # If method exists (it might be internal/private)
+                     templates = self.query_executor._load_query_templates()
+                     template = templates.get(intent_str, "")
+                elif hasattr(self.query_executor, 'query_templates'):
+                     # If attribute exists
+                     template = self.query_executor.query_templates.get(intent_str, "")
+
                 cypher_queries.append({
-                    "query": self.query_executor._load_query_templates().get(intent_str, ""),
+                    "query": template,
                     "description": f"Baseline query for {intent_str}",
                     "params": params
                 })
@@ -135,7 +148,7 @@ class GraphRAGPipeline:
 
         if use_embeddings:
             if verbose:
-                print("\n📍 STEP 3b: Embedding-based Retrieval...")
+                print(f"\n📍 STEP 3b: Embedding-based Retrieval ({semantic_model.upper()})...")
             
             try:
                 # Detect if this is a visa query
@@ -145,7 +158,7 @@ class GraphRAGPipeline:
                     
                     semantic_results = self.semantic_searcher.search_visa_semantic(
                         query=user_query,
-                        model='sbert',
+                        model=semantic_model, 
                         top_k=max_results
                     )
                 else:
@@ -157,7 +170,7 @@ class GraphRAGPipeline:
                     
                     semantic_results = self.semantic_searcher.search_hotels_semantic(
                         query=user_query,
-                        model='sbert',
+                        model=semantic_model, 
                         top_k=max_results,
                         city_filter=city_filter,
                         country_filter=country_filter
@@ -194,7 +207,7 @@ class GraphRAGPipeline:
             user_query=user_query,
             combined_results=combined_results,
             metadata=metadata,
-            query_type=query_type  # ✅ Dynamic based on intent!
+            query_type=query_type
         )
 
         if verbose:
@@ -227,7 +240,6 @@ class GraphRAGPipeline:
             'llm_response': llm_response,
             'total_pipeline_time': total_time
         }
-    
 
     def initialize_visa_search(self, verbose=False):
         """Build FAISS index for visa requirements"""
@@ -240,6 +252,96 @@ class GraphRAGPipeline:
         except Exception as e:
             if verbose:
                 print(f"⚠️ Warning: Could not build visa index: {e}")
+    
+
+    def compare_models(self, user_query: str) -> Dict[str, Any]:
+        """
+        Run retrieval ONCE, then generate answers using ALL models.
+        Calculates 'Context Adherence' as an automated Accuracy metric.
+        """
+        print(f"Retrieving context for comparison query: {user_query}")
+        
+        # 1. Retrieve Context
+        intent = self.classify_intent(user_query)
+        entities = self.entity_extractor.extract_entities(user_query)
+        
+        # Baseline Retrieval
+        params = self.query_mapper.map_entities_to_parameters(intent, entities)
+        cypher_results = self.query_executor.execute_query(intent, params)
+        
+        # Semantic Retrieval
+        semantic_results = []
+        if 'VISA' in intent:
+            semantic_results = self.semantic_searcher.search_visa_semantic(user_query, model='sbert', top_k=10)
+        else:
+            semantic_results = self.semantic_searcher.search_hotels_semantic(
+                user_query, model='sbert', top_k=10, 
+                city_filter=entities.get('city', [None])[0]
+            )
+
+        # Combine Results
+        combined_results, metadata = ResultCombiner.combine_results(
+            cypher_results, semantic_results, intent=intent
+        )
+        
+        # --- NEW: Extract Ground Truth Keys from Context ---
+        ground_truth_keys = []
+        for item in combined_results:
+            # If it's a hotel, track the Hotel Name
+            if 'hotel_name' in item:
+                ground_truth_keys.append(item['hotel_name'].lower())
+            # If it's a visa, track the "From -> To" relationship
+            elif 'from_country' in item:
+                key = f"{item['from_country']} to {item['to_country']}".lower()
+                ground_truth_keys.append(key)
+        
+        # Build Prompt
+        prompt = PromptBuilder.build_prompt(user_query, combined_results, metadata)
+        
+        # 2. Iterate through Models
+        model_results = {}
+        target_models = ['llama-3.1-8b', 'llama-3.3-70b', 'qwen-32b']
+        
+        for model_key in target_models:
+            print(f"Generating with {model_key}...")
+            response = self.llm_client.generate_response(
+                prompt=prompt,
+                model_key=model_key,
+                temperature=0.3
+            )
+            
+            # --- NEW: Calculate Automated Accuracy (Context Adherence) ---
+            # We check how many Ground Truth keys appear in the answer
+            answer_text = response['answer'].lower()
+            matches = 0
+            if ground_truth_keys:
+                for key in ground_truth_keys:
+                    if key in answer_text:
+                        matches += 1
+                accuracy_score = (matches / len(ground_truth_keys)) * 100
+            else:
+                accuracy_score = 0.0 # No context to match against
+            
+            # Calculate estimated cost
+            output_tokens = response.get('tokens_used', 0)
+            price_per_1k = 0.00008 if '8b' in model_key else (0.00079 if '70b' in model_key else 0.00059)
+            cost = output_tokens * price_per_1k
+            
+            model_results[model_key] = {
+                'answer': response['answer'],
+                'time': response['response_time'],
+                'tokens': output_tokens,
+                'cost': cost,
+                'accuracy': accuracy_score, # <--- The new metric!
+                'model_name': response['model_name']
+            }
+            
+        return {
+            'query': user_query,
+            'intent': intent,
+            'context_results': len(combined_results),
+            'model_results': model_results
+        }
 
     def close(self):
         """Clean up resources"""

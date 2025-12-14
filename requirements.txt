@@ -1,0 +1,11 @@
+neo4j
+streamlit
+plotly
+networkx
+groq
+sentence-transformers
+faiss-cpu
+spacy
+numpy
+python-dotenv
+requests

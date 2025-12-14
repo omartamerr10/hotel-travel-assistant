@@ -118,34 +118,69 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # Retrieval Method Selection
-    st.markdown("### 🔍 Retrieval Strategy")
-    retrieval_method = st.radio(
-        "Choose retrieval method:",
-        ["Baseline (Cypher Only)", "Embeddings Only", "Hybrid (Both)"],
-        help="Baseline uses structured Cypher queries, Embeddings uses semantic similarity, Hybrid combines both"
+    # ========================================================================
+    # NEW: MODE SELECTION  (Benchmark mode is added to help compare the different models )
+    # ========================================================================
+    st.markdown("### 🛠️ App Mode")
+    app_mode = st.radio(
+        "Select Mode:",
+        ["Standard Search", "Model Benchmark (Comparison)"],
+        help="Standard: One query, one model. Benchmark: Compare 3 models side-by-side."
     )
-    
-    use_baseline = retrieval_method in ["Baseline (Cypher Only)", "Hybrid (Both)"]
-    use_embeddings = retrieval_method in ["Embeddings Only", "Hybrid (Both)"]
     
     st.markdown("---")
-    
-    # LLM Model Selection
-    st.markdown("### 🤖 LLM Model")
-    llm_model = st.selectbox(
-        "Select LLM:",
-        ["llama-3.1-8b", "llama-3.3-70b", "qwen-32b"],
-        format_func=lambda x: {
-            "llama-3.1-8b": "Llama 3.1 8B (Fast)",
-            "llama-3.3-70b": "Llama 3.3 70B (Smart)",
-            "qwen-32b": "Qwen 3 32B (Balanced)"
-        }.get(x, x),
-        help="Choose which language model to use for generating responses"
-    )
 
-    st.markdown("---")
-    
+    # Initialize variables to avoid errors if Benchmark mode is selected
+    # (Defaults for benchmark mode)
+    use_baseline = True
+    use_embeddings = True
+    semantic_model = 'sbert'
+    llm_model = 'llama-3.1-8b' 
+
+    # ONLY SHOW THESE CONTROLS IF IN STANDARD MODE
+    if app_mode == "Standard Search":
+        
+        # 1. Retrieval Strategy
+        st.markdown("### 🔍 Retrieval Strategy")
+        retrieval_method = st.radio(
+            "Choose retrieval method:",
+            ["Baseline (Cypher Only)", "Embeddings Only", "Hybrid (Both)"]
+        )
+        
+        use_baseline = retrieval_method in ["Baseline (Cypher Only)", "Hybrid (Both)"]
+        use_embeddings = retrieval_method in ["Embeddings Only", "Hybrid (Both)"]
+        
+        st.markdown("---")
+
+        # 2. Embedding Model (Only if embeddings used)
+        if use_embeddings:
+            st.markdown("### 🧠 Embedding Model")
+            embedding_choice = st.radio(
+                "Select Model:",
+                ["SBERT (Fast)", "BGE (High Quality)"]
+            )
+            semantic_model = "sbert" if "SBERT" in embedding_choice else "bge"
+        else:
+            semantic_model = None 
+            
+        st.markdown("---")
+        
+        # 3. LLM Selection
+        st.markdown("### 🤖 LLM Model")
+        llm_model = st.selectbox(
+            "Select LLM:",
+            ["llama-3.1-8b", "llama-3.3-70b", "qwen-32b"], 
+            format_func=lambda x: {
+                "llama-3.1-8b": "Llama 3.1 8B (Fast)",
+                "llama-3.3-70b": "Llama 3.3 70B (Smart)",
+                "qwen-32b": "Qwen 3 32B (Balanced)" 
+            }.get(x, x)
+        )
+
+    else:
+        # BENCHMARK MODE INFO
+        st.info("⚔️ **Benchmark Mode Active**\n\nRetrieval: Hybrid (SBERT)\nModels: Llama 3.1, Llama 3.3, Qwen 3")
+
 
     # Advanced Options
     with st.expander("🔧 Advanced Options"):
@@ -267,31 +302,132 @@ pipeline = initialize_pipeline()
 # ============================================================================
 
 if submit_button and query_input and pipeline:
-    with st.spinner("🔄 Processing your query..."):
-        try:
-            results = pipeline.process_query(
-                user_query=query_input,
-                use_baseline=use_baseline,
-                use_embeddings=use_embeddings,
-                llm_model=llm_model,
-                max_results=max_results,
-                verbose=verbose_mode
-            )
-            
-            st.session_state.current_results = results
-            st.session_state.query_history.append({
-                "query": query_input,
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "retrieval_method": retrieval_method,
-                "llm_model": llm_model
-            })
-            
-            st.success("✅ Query processed successfully!")
-            
-        except Exception as e:
-            st.error(f"❌ Error processing query: {str(e)}")
-            if show_debug:
-                st.exception(e)
+    
+    # ------------------------------------------------------------------------
+    # MODE 1: STANDARD SEARCH (Your original logic)
+    # ------------------------------------------------------------------------
+    if app_mode == "Standard Search":
+        with st.spinner("🔄 Processing your query..."):
+            try:
+                results = pipeline.process_query(
+                    user_query=query_input,
+                    use_baseline=use_baseline,
+                    use_embeddings=use_embeddings,
+                    semantic_model=semantic_model,
+                    llm_model=llm_model,
+                    max_results=max_results,
+                    verbose=verbose_mode
+                )
+                
+                st.session_state.current_results = results
+                st.session_state.query_history.append({
+                    "query": query_input,
+                    "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+                    "retrieval_method": retrieval_method,
+                    "llm_model": llm_model
+                })
+                
+                st.success("✅ Query processed successfully!")
+                
+            except Exception as e:
+                st.error(f"❌ Error processing query: {str(e)}")
+                if show_debug:
+                    st.exception(e)
+
+    # ------------------------------------------------------------------------
+    # MODE 2: BENCHMARK MODE (The new comparison logic)
+    # ------------------------------------------------------------------------
+    elif app_mode == "Model Benchmark (Comparison)":
+        
+        st.markdown(f"### ⚔️ Model Battle: {query_input}")
+        
+        with st.spinner("Running Benchmark... (This checks aLlama 3.1, 3.3, and Qwen 3)"):
+            try:
+                # 1. Run Comparison
+                benchmark_data = pipeline.compare_models(query_input)
+                results = benchmark_data['model_results']
+                
+                st.success("✅ Benchmark Complete!")
+                st.markdown(f"**Context Retrieved:** {benchmark_data['context_results']} items | **Intent:** `{benchmark_data['intent']}`")
+                
+                # 2. Display Answers Side-by-Side
+                st.markdown("---")
+                cols = st.columns(3)
+                model_keys = list(results.keys())
+                
+                # List for DataFrame
+                eval_data = []
+                
+                for i, col in enumerate(cols):
+                    m_key = model_keys[i]
+                    data = results[m_key]
+                    
+                    # Prepare quantitative data for table
+                    eval_data.append({
+                        "Model": m_key,
+                        "Time (s)": round(data['time'], 2),
+                        "Tokens": data['tokens'],
+                        "Cost ($)": float(f"{data['cost']:.5f}"),
+                        "Context Adherence (%)": round(data['accuracy'], 1), 
+                    })
+                    
+                    with col:
+                        st.subheader(m_key)
+                        # Display the new accuracy metric in the card
+                        st.caption(f"⏱️ {data['time']:.2f}s | 🎯 Acc: {data['accuracy']:.1f}%")
+                        st.info(data['answer'])
+                
+               # 3. Evaluation Table
+                st.markdown("### 📊 Evaluation Metrics")
+                
+                import pandas as pd
+                df = pd.DataFrame(eval_data)
+                
+                # Add columns for Qualitative (Human) Scoring
+                df["Human Relevance (1-5)"] = 0   # Renamed for clarity
+                df["Human Naturalness (1-5)"] = 0 # Renamed for clarity
+                
+                st.markdown("Automated metrics are filled. Please rate Relevance & Naturalness:")
+                edited_df = st.data_editor(
+                    df, 
+                    hide_index=True,
+                    use_container_width=True,
+                    column_config={
+                        "Context Adherence (%)": st.column_config.ProgressColumn(
+                            "KG Accuracy %", 
+                            help="Percentage of retrieved KG entities mentioned in the answer",
+                            format="%.1f%%",
+                            min_value=0,
+                            max_value=100,
+                        ),
+                        "Human Relevance (1-5)": st.column_config.NumberColumn(min_value=1, max_value=5, step=1),
+                        "Human Naturalness (1-5)": st.column_config.NumberColumn(min_value=1, max_value=5, step=1),
+                    }
+                )
+                     
+                # 4. Calculate Winner Button
+                if st.button("🏆 Calculate Final Score"):
+                    edited_df["Total Score"] = (
+                        edited_df["Accuracy (1-5)"] + 
+                        edited_df["Relevance (1-5)"] + 
+                        edited_df["Naturalness (1-5)"]
+                    )
+                    
+                    # Find winner
+                    winner = edited_df.sort_values(by="Total Score", ascending=False).iloc[0]
+                    st.success(f"🎉 The Winner is **{winner['Model']}** with {winner['Total Score']} points!")
+                    
+                    # Display Final Sorted Table
+                    st.dataframe(
+                        edited_df.sort_values(by="Total Score", ascending=False), 
+                        use_container_width=True
+                    )
+
+            except Exception as e:
+                st.error(f"❌ Benchmark failed: {str(e)}")
+                if show_debug:
+                    st.exception(e)
+
 elif submit_button and not pipeline:
     st.error("Pipeline not initialized. Check your configuration.")
     
@@ -318,8 +454,7 @@ if st.session_state.current_results:
         st.markdown("## 🎯 Assistant's Answer")
         
         if results['llm_response']['success']:
-            st.markdown(f'<div class="answer-box">{results["llm_response"]["answer"]}</div>', 
-                       unsafe_allow_html=True)
+            st.info(results["llm_response"]["answer"], icon="🤖")
             
             # Show model info
             col1, col2, col3 = st.columns(3)
@@ -443,6 +578,7 @@ if st.session_state.current_results:
             "User Query": results.get('user_query', ''),
             "Detected Intent": results.get('intent', ''),
             "Retrieval Method": retrieval_method,
+            "Embedding Model": semantic_model if use_embeddings else "N/A",
             "LLM Model": results['llm_response']['model'],
             "Baseline Used": "✅" if use_baseline else "❌",
             "Embeddings Used": "✅" if use_embeddings else "❌"

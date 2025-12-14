@@ -1,0 +1,23 @@
+# --- Virtual Environment (CRITICAL) ---
+venv/
+env/
+.env
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.so
+
+# --- Jupyter Notebooks ---
+.ipynb_checkpoints/
+
+# --- VS Code Settings (Optional but recommended) ---
+.vscode/
+
+# --- OS Generated Files ---
+.DS_Store
+Thumbs.db
+
+# --- Data/Config you might not want on GitHub ---
+# Uncomment the next line if your config.txt has real passwords
+# config.txt
