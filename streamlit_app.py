@@ -101,6 +101,21 @@ if 'query_history' not in st.session_state:
 if 'current_results' not in st.session_state:
     st.session_state.current_results = None
 
+if 'edited_df_benchmark' not in st.session_state:
+    st.session_state.edited_df_benchmark = None
+
+if 'current_query' not in st.session_state:
+    st.session_state.current_query = ""
+
+if 'benchmark_results' not in st.session_state:
+    st.session_state.benchmark_results = None
+
+if 'benchmark_responses' not in st.session_state:
+    st.session_state.benchmark_responses = {}
+
+if 'benchmark_key' not in st.session_state:
+    st.session_state.benchmark_key = None
+
 # ============================================================================
 # SIDEBAR CONFIGURATION
 # ============================================================================
@@ -239,6 +254,7 @@ st.markdown("## 💬 Ask Your Question")
 query_input = st.text_area(
     "Enter your query:",
     height=100,
+    value=st.session_state.current_query,
     placeholder="E.g., 'Recommend a hotel in Paris for a family with children' or 'Find 5-star hotels in Dubai with spa facilities'",
     help="Ask about hotel recommendations, search for specific hotels, or inquire about amenities and services"
 )
@@ -302,6 +318,9 @@ pipeline = initialize_pipeline()
 # ============================================================================
 
 if submit_button and query_input and pipeline:
+
+    # Save current query to session state
+    st.session_state.current_query = query_input
     
     # ------------------------------------------------------------------------
     # MODE 1: STANDARD SEARCH (Your original logic)
@@ -318,7 +337,6 @@ if submit_button and query_input and pipeline:
                     max_results=max_results,
                     verbose=verbose_mode
                 )
-                
                 st.session_state.current_results = results
                 st.session_state.query_history.append({
                     "query": query_input,
@@ -341,88 +359,29 @@ if submit_button and query_input and pipeline:
         
         st.markdown(f"### ⚔️ Model Battle: {query_input}")
         
-        with st.spinner("Running Benchmark... (This checks aLlama 3.1, 3.3, and Qwen 3)"):
+        with st.spinner("Running Benchmark..."):
             try:
-                # 1. Run Comparison
-                benchmark_data = pipeline.compare_models(query_input)
+                # Run comparison only if not already done for this query
+                if (st.session_state.get('benchmark_query') != query_input or 
+                    st.session_state.get('benchmark_data') is None):
+                    
+                    benchmark_data = pipeline.compare_models(query_input)
+                    st.session_state.benchmark_data = benchmark_data
+                    st.session_state.benchmark_query = query_input
+                    st.session_state.edited_df_benchmark = None  # Reset ratings
+                    st.rerun()
+                
+                benchmark_data = st.session_state.benchmark_data
                 results = benchmark_data['model_results']
+                
+                # Store in persistent session state for display later
+                st.session_state.benchmark_responses = results
+                st.session_state.benchmark_results = benchmark_data
                 
                 st.success("✅ Benchmark Complete!")
                 st.markdown(f"**Context Retrieved:** {benchmark_data['context_results']} items | **Intent:** `{benchmark_data['intent']}`")
-                
-                # 2. Display Answers Side-by-Side
-                st.markdown("---")
-                cols = st.columns(3)
-                model_keys = list(results.keys())
-                
-                # List for DataFrame
-                eval_data = []
-                
-                for i, col in enumerate(cols):
-                    m_key = model_keys[i]
-                    data = results[m_key]
+                # Display will be handled outside the submit button block
                     
-                    # Prepare quantitative data for table
-                    eval_data.append({
-                        "Model": m_key,
-                        "Time (s)": round(data['time'], 2),
-                        "Tokens": data['tokens'],
-                        "Cost ($)": float(f"{data['cost']:.5f}"),
-                        "Context Adherence (%)": round(data['accuracy'], 1), 
-                    })
-                    
-                    with col:
-                        st.subheader(m_key)
-                        # Display the new accuracy metric in the card
-                        st.caption(f"⏱️ {data['time']:.2f}s | 🎯 Acc: {data['accuracy']:.1f}%")
-                        st.info(data['answer'])
-                
-               # 3. Evaluation Table
-                st.markdown("### 📊 Evaluation Metrics")
-                
-                import pandas as pd
-                df = pd.DataFrame(eval_data)
-                
-                # Add columns for Qualitative (Human) Scoring
-                df["Human Relevance (1-5)"] = 0   # Renamed for clarity
-                df["Human Naturalness (1-5)"] = 0 # Renamed for clarity
-                
-                st.markdown("Automated metrics are filled. Please rate Relevance & Naturalness:")
-                edited_df = st.data_editor(
-                    df, 
-                    hide_index=True,
-                    use_container_width=True,
-                    column_config={
-                        "Context Adherence (%)": st.column_config.ProgressColumn(
-                            "KG Accuracy %", 
-                            help="Percentage of retrieved KG entities mentioned in the answer",
-                            format="%.1f%%",
-                            min_value=0,
-                            max_value=100,
-                        ),
-                        "Human Relevance (1-5)": st.column_config.NumberColumn(min_value=1, max_value=5, step=1),
-                        "Human Naturalness (1-5)": st.column_config.NumberColumn(min_value=1, max_value=5, step=1),
-                    }
-                )
-                     
-                # 4. Calculate Winner Button
-                if st.button("🏆 Calculate Final Score"):
-                    edited_df["Total Score"] = (
-                        edited_df["Accuracy (1-5)"] + 
-                        edited_df["Relevance (1-5)"] + 
-                        edited_df["Naturalness (1-5)"]
-                    )
-                    
-                    # Find winner
-                    winner = edited_df.sort_values(by="Total Score", ascending=False).iloc[0]
-                    st.success(f"🎉 The Winner is **{winner['Model']}** with {winner['Total Score']} points!")
-                    
-                    # Display Final Sorted Table
-                    st.dataframe(
-                        edited_df.sort_values(by="Total Score", ascending=False), 
-                        use_container_width=True
-                    )
-
             except Exception as e:
                 st.error(f"❌ Benchmark failed: {str(e)}")
                 if show_debug:
@@ -430,10 +389,115 @@ if submit_button and query_input and pipeline:
 
 elif submit_button and not pipeline:
     st.error("Pipeline not initialized. Check your configuration.")
+
+# ============================================================================
+# BENCHMARK RESULTS DISPLAY (Outside submit button to persist across reruns)
+# ============================================================================
+
+if st.session_state.benchmark_results is not None and app_mode == "Model Benchmark (Comparison)":
+    benchmark_data = st.session_state.benchmark_results
+    results = st.session_state.benchmark_responses
+    
+    st.markdown("---")
+    st.markdown("### ⚔️ Model Comparison Results")
+    
+    # Display Answers Side-by-Side
+    cols = st.columns(3)
+    model_keys = list(results.keys())
+    
+    eval_data = []
+    
+    for i, col in enumerate(cols):
+        m_key = model_keys[i]
+        data = results[m_key]
+        
+        eval_data.append({
+            "Model": m_key,
+            "Time (s)": round(data['time'], 2),
+            "Tokens": data['tokens'],
+            "Cost ($)": float(f"{data['cost']:.5f}"),
+            "Context Adherence (%)": round(data['accuracy'], 1), 
+        })
+        
+        with col:
+            st.subheader(m_key)
+            st.caption(f"⏱️ {data['time']:.2f}s | 🎯 Acc: {data['accuracy']:.1f}%")
+            st.info(data['answer'])
+    
+    # Evaluation Table
+    st.markdown("### 📊 Evaluation Metrics")
+    
+    import pandas as pd
+    
+    # Create a unique key for this benchmark query to track if we need to reset
+    benchmark_key = f"{st.session_state.benchmark_query}_{len(eval_data)}"
+    
+    # Check if we need to initialize or reset the dataframe
+    if (st.session_state.edited_df_benchmark is None or 
+        st.session_state.get('benchmark_key') != benchmark_key):
+        # Initialize fresh dataframe
+        df = pd.DataFrame(eval_data)
+        df["Human Relevance (1-5)"] = 0
+        df["Human Naturalness (1-5)"] = 0
+        st.session_state.edited_df_benchmark = df
+        st.session_state.benchmark_key = benchmark_key
+    
+    st.markdown("Rate Relevance & Naturalness:")
+    
+    # Configure column editability
+    column_config = {
+        "Model": st.column_config.TextColumn("Model", disabled=True),
+        "Time (s)": st.column_config.NumberColumn("Time (s)", disabled=True),
+        "Tokens": st.column_config.NumberColumn("Tokens", disabled=True),
+        "Cost ($)": st.column_config.NumberColumn("Cost ($)", disabled=True, format="%.5f"),
+        "Context Adherence (%)": st.column_config.NumberColumn("Context Adherence (%)", disabled=True),
+        "Human Relevance (1-5)": st.column_config.NumberColumn(
+            "Human Relevance (1-5)",
+            min_value=0,
+            max_value=5,
+            step=1,
+            required=True
+        ),
+        "Human Naturalness (1-5)": st.column_config.NumberColumn(
+            "Human Naturalness (1-5)",
+            min_value=0,
+            max_value=5,
+            step=1,
+            required=True
+        )
+    }
+    
+    # Use data_editor with proper configuration
+    edited_df = st.data_editor(
+        st.session_state.edited_df_benchmark,
+        column_config=column_config,
+        hide_index=True,
+        use_container_width=True,
+        key="benchmark_editor",
+        disabled=["Model", "Time (s)", "Tokens", "Cost ($)", "Context Adherence (%)"]
+    )
+    
+    # Update session state
+    st.session_state.edited_df_benchmark = edited_df
+    
+    # Calculate button
+    if st.button("🏆 Calculate Final Score", key="calc_score"):
+        df_calc = edited_df.copy()
+        df_calc["Accuracy (Score)"] = df_calc["Context Adherence (%)"].astype(float) / 100 * 5
+        df_calc["Total Score"] = (
+            df_calc["Accuracy (Score)"] + 
+            df_calc["Human Relevance (1-5)"] + 
+            df_calc["Human Naturalness (1-5)"]
+        )
+        
+        winner = df_calc.sort_values(by="Total Score", ascending=False).iloc[0]
+        st.success(f"🎉 Winner: **{winner['Model']}** with {winner['Total Score']:.2f} points!")
+        st.dataframe(df_calc.sort_values(by="Total Score", ascending=False), use_container_width=True)
     
 # ============================================================================
 # RESULTS DISPLAY
 # ============================================================================
+
 
 if st.session_state.current_results:
     results = st.session_state.current_results

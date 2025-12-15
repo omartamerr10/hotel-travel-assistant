@@ -1,0 +1,14 @@
+Query,Expected,Type,SBERT_Rank,SBERT_Score,BGE_Rank,BGE_Score,Winner
+5-star luxury hotel in Paris with excellent cleanliness,l'étoile palace,HOTEL,1,0.7828,1,0.8295,BGE
+Business hotel in London with great staff,the royal compass,HOTEL,1,0.7565,1,0.8107,BGE
+Family-friendly hotel in Sydney near the harbour,sydney harbour grand,HOTEL,1,0.7746,1,0.8362,BGE
+Comfortable hotel in Tokyo for solo travelers,kyo-to grand,HOTEL,4,0.7060,1,0.8332,BGE
+Luxury resort in Dubai with excellent facilities,the golden oasis,HOTEL,1,0.8243,1,0.7870,SBERT
+Hotel in Moscow near the Kremlin,kremlin suites,HOTEL,1,0.8127,1,0.8697,BGE
+Romantic hotel in Amsterdam by the canals,canal house grand,HOTEL,1,0.7340,1,0.8487,BGE
+Beach hotel in Rio de Janeiro,copacabana lux,HOTEL,1,0.7382,1,0.8219,BGE
+Do Egyptian citizens need a visa to visit France?,Egypt → France,VISA,1,0.8014,1,0.8897,BGE
+Visa requirements from Russia to Germany,Russia → Germany,VISA,1,0.8163,1,0.8928,BGE
+Can Indians travel to United Kingdom without visa?,India → United Kingdom,VISA,1,0.6544,1,0.8277,BGE
+Travel documents needed from China to United States,China → United States,VISA,1,0.6796,1,0.7798,BGE
+Visa policy for Brazilians visiting Japan,Brazil → Japan,VISA,NOT_FOUND,-,NOT_FOUND,-,NEITHER

@@ -8,4 +8,6 @@ faiss-cpu
 spacy
 numpy
 python-dotenv
+tabulate
+pandas
 requests
