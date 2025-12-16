@@ -193,13 +193,35 @@ class EntityExtractor:
         for match_id, start, end in traveler_matches:
             entities['traveler_type'].append(doc[start:end].text)
 
+        # === SEMANTIC AGE EXTRACTION ===
+        # Map common age-related terms to numeric ages
+        age_semantic_map = {
+            'senior citizen': 70, 'senior citizens': 70, 'senior': 70, 'seniors': 70,
+            'elderly': 75, 'retired': 68, 'retiree': 68, 'retirees': 68,
+            'pensioner': 70, 'pensioners': 70, 'golden age': 70, 'golden years': 70,
+            'older adult': 68, 'older adults': 68,
+            'middle aged': 45, 'middle-aged': 45, 'midlife': 45, 'middle age': 45,
+            'young adult': 25, 'young adults': 25, 'young professional': 28, 
+            'young professionals': 28, 'millennial': 30, 'millennials': 30, 'gen z': 22,
+            'with kids': 38, 'with children': 38, 'with my kids': 38, 
+            'with my children': 38, 'parent': 38, 'parents': 38,
+            'teenager': 16, 'teenagers': 16, 'teen': 16, 'teens': 16, 'youth': 18,
+        }
+        
+        # Check for semantic age terms (check longer phrases first)
+        for term in sorted(age_semantic_map.keys(), key=len, reverse=True):
+            if term in text_lower:
+                entities['age'].append(str(age_semantic_map[term]))
+                break  # Take first match only
+
         # === REGEX: For structured patterns ===
 
-        # Age patterns
-        age_pattern = r'\b(\d+)\s*(?:year|yr)s?\s*old\b'
-        age_matches = re.findall(age_pattern, text_lower)
-        if age_matches:
-            entities['age'].extend(age_matches)
+        # Age patterns (only if no semantic age found)
+        if not entities['age']:
+            age_pattern = r'\b(\d+)\s*(?:year|yr)s?\s*old\b'
+            age_matches = re.findall(age_pattern, text_lower)
+            if age_matches:
+                entities['age'].extend(age_matches)
 
         # Star rating patterns
         star_pattern = r'\b(\d)\s*[-\s]?star\b'
@@ -554,19 +576,30 @@ class QueryMapper:
         
         elif intent == 'DEMOGRAPHIC_RECOMMENDATION':
             if 'age' in entities and entities['age']:
-                params['age'] = int(entities['age'][0])
+                age = int(entities['age'][0])
+                params['age'] = age
+                # Smarter age ranges: seniors get wider range
+                if age >= 65:
+                    params['age_range'] = 10  # Seniors: ±10 years
+                elif age >= 45:
+                    params['age_range'] = 8   # Middle-aged: ±8 years
+                else:
+                    params['age_range'] = 5   # Younger: ±5 years
             else:
-                params['age'] = 30  # Default age
-            
-            params['age_range'] = 5  # +/- 5 years
+                params['age'] = 35
+                params['age_range'] = 10
             
             if 'gender' in entities and entities['gender']:
                 params['gender'] = entities['gender'][0].capitalize()
+            else:
+                params['gender'] = None  # Allow any gender
             
             if 'traveler_type' in entities and entities['traveler_type']:
                 params['traveler_type'] = entities['traveler_type'][0].capitalize()
+            else:
+                params['traveler_type'] = None  # Allow any traveler type
             
-            params['min_similar_travelers'] = 2
+            params['min_similar_travelers'] = 1  # Lowered from 2
             params['limit'] = 10
         
         return params
@@ -764,12 +797,19 @@ class QueryExecutor:
                 OPTIONAL MATCH (from)-[v:NEEDS_VISA]->(to)
                 
                 RETURN from.name AS from_country,
-                       to.name AS to_country,
-                       CASE WHEN v IS NOT NULL 
+                      to.name AS to_country,
+                      CASE WHEN v IS NOT NULL 
                             THEN 'Yes' 
                             ELSE 'No' 
-                       END AS visa_required,
-                       v.visa_type AS visa_type
+                      END AS visa_required,
+                      CASE WHEN v IS NOT NULL
+                            THEN v.visa_type
+                            ELSE 'No visa required'
+                      END AS visa_type,
+                      CASE WHEN v IS NOT NULL
+                            THEN 'A visa is required for travel from ' + from.name + ' to ' + to.name
+                            ELSE 'No visa is required for travel from ' + from.name + ' to ' + to.name
+                      END AS visa_information
             """,
             
             # ================================================================
@@ -778,57 +818,58 @@ class QueryExecutor:
             'LOCATION_BASED_QUERY': """
                 MATCH (h:Hotel)-[:LOCATED_IN]->(c:City)-[:LOCATED_IN]->(co:Country)
                 WHERE (toLower(co.name) = toLower($country) OR $country IS NULL)
-                  AND (h.star_rating >= $min_star_rating OR $min_star_rating IS NULL)
+                AND (h.star_rating >= $min_star_rating OR $min_star_rating IS NULL)
+                AND (toLower(c.name) = toLower($city) OR $city IS NULL)
                 
-                WITH c, co, 
-                     COUNT(h) AS hotel_count, 
-                     AVG(h.average_reviews_score) AS avg_rating,
-                     AVG(h.cleanliness_base) AS avg_cleanliness,
-                     AVG(h.comfort_base) AS avg_comfort,
-                     AVG(h.facilities_base) AS avg_facilities,
-                     MAX(h.star_rating) AS max_stars
-                
-                WHERE hotel_count >= $min_hotels OR $min_hotels IS NULL
-                
-                RETURN c.name AS city,
-                       co.name AS country,
-                       hotel_count AS number_of_hotels,
-                       ROUND(avg_rating * 100) / 100 AS average_rating,
-                       ROUND(avg_cleanliness * 100) / 100 AS average_cleanliness,
-                       ROUND(avg_comfort * 100) / 100 AS average_comfort,
-                       ROUND(avg_facilities * 100) / 100 AS average_facilities,
-                       max_stars AS highest_star_rating
-                ORDER BY hotel_count DESC, avg_rating DESC
-                LIMIT $limit
+                RETURN h.hotel_id AS hotel_id,
+                    h.name AS hotel_name,
+                    c.name AS city,
+                    co.name AS country,
+                    h.star_rating AS star_rating,
+                    h.average_reviews_score AS avg_score,
+                    h.cleanliness_base AS cleanliness,
+                    h.comfort_base AS comfort,
+                    h.facilities_base AS facilities,
+                    1 AS number_of_hotels
+                ORDER BY h.star_rating DESC, h.average_reviews_score DESC
+                LIMIT COALESCE($limit, 20)
             """,
             
             # ================================================================
             # 7. TRAVELER_PREFERENCE_QUERY
             # ================================================================
             'TRAVELER_PREFERENCE_QUERY': """
-                MATCH (t:Traveller)-[:STAYED_AT]->(h:Hotel)-[:LOCATED_IN]->(c:City)-[:LOCATED_IN]->(co:Country)
+                MATCH (h:Hotel)-[:LOCATED_IN]->(c:City)-[:LOCATED_IN]->(co:Country)
+                WHERE (toLower(c.name) = toLower($city) OR $city IS NULL)
+                AND (toLower(co.name) = toLower($country) OR $country IS NULL)
+                
+                OPTIONAL MATCH (t:Traveller)-[:STAYED_AT]->(h)
                 WHERE (toLower(t.type) = toLower($traveler_type) OR $traveler_type IS NULL)
-                  AND (t.age >= $age_min OR $age_min IS NULL)
-                  AND (t.age <= $age_max OR $age_max IS NULL)
-                  AND (toLower(t.gender) = toLower($gender) OR $gender IS NULL)
-                  AND (toLower(c.name) = toLower($city) OR $city IS NULL)
-                  AND (toLower(co.name) = toLower($country) OR $country IS NULL)
+                AND (
+                    $age_min IS NULL OR $age_max IS NULL OR
+                    (t.age IS NOT NULL AND toInteger(t.age) >= $age_min AND toInteger(t.age) <= $age_max)
+                )
+                AND (toLower(t.gender) = toLower($gender) OR $gender IS NULL)
                 
-                WITH h, c, co, t.type AS traveler_type,
-                     COUNT(DISTINCT t) AS traveler_count,
-                     AVG(t.age) AS avg_age
-                
-                WHERE traveler_count >= $min_travelers OR $min_travelers IS NULL
+                WITH h, c, co,
+                    COUNT(DISTINCT t) AS traveler_count,
+                    COALESCE(AVG(CASE WHEN t.age IS NOT NULL THEN toInteger(t.age) ELSE NULL END), 0) AS avg_age
                 
                 RETURN h.hotel_id AS hotel_id,
-                       h.name AS hotel_name,
-                       h.star_rating AS star_rating,
-                       h.average_reviews_score AS avg_score,
-                       c.name AS city,
-                       co.name AS country,
-                       traveler_type AS most_common_traveler_type,
-                       traveler_count AS matching_travelers,
-                       ROUND(avg_age) AS average_traveler_age
+                    h.name AS hotel_name,
+                    h.star_rating AS star_rating,
+                    h.average_reviews_score AS avg_score,
+                    h.cleanliness_base AS cleanliness,
+                    h.comfort_base AS comfort,
+                    h.facilities_base AS facilities,
+                    c.name AS city,
+                    co.name AS country,
+                    CASE WHEN traveler_count > 0 
+                            THEN 'Based on ' + toString(traveler_count) + ' similar travelers'
+                            ELSE 'Based on hotel ratings'
+                    END AS recommendation_basis,
+                    traveler_count AS matching_travelers,
+                    CASE WHEN avg_age > 0 THEN ROUND(avg_age) ELSE NULL END AS average_traveler_age
                 ORDER BY traveler_count DESC, h.average_reviews_score DESC
                 LIMIT $limit
             """,
@@ -927,7 +968,10 @@ class QueryExecutor:
             'DEMOGRAPHIC_RECOMMENDATION': """
                 MATCH (similar:Traveller)-[:STAYED_AT]->(h:Hotel)-[:LOCATED_IN]->(c:City)-[:LOCATED_IN]->(co:Country)
                 
-                WHERE (similar.age >= $age - $age_range AND similar.age <= $age + $age_range)
+                WHERE (
+                    ($age IS NULL OR $age_range IS NULL) OR
+                    (toInteger(similar.age) >= $age - $age_range AND toInteger(similar.age) <= $age + $age_range)
+                )
                   AND (toLower(similar.gender) = toLower($gender) OR $gender IS NULL)
                   AND (toLower(similar.type) = toLower($traveler_type) OR $traveler_type IS NULL)
                   AND (toLower(c.name) = toLower($city) OR $city IS NULL)
@@ -938,7 +982,7 @@ class QueryExecutor:
                 WITH h, c, co,
                      COUNT(DISTINCT similar) AS similar_traveler_count,
                      AVG(r.score_overall) AS avg_rating_from_similar,
-                     AVG(similar.age) AS avg_similar_age
+                     AVG(CASE WHEN similar.age IS NOT NULL THEN toInteger(similar.age) ELSE NULL END) AS avg_similar_age
                 
                 WHERE similar_traveler_count >= $min_similar_travelers OR $min_similar_travelers IS NULL
                 
@@ -1001,8 +1045,6 @@ class QueryExecutor:
     def close(self):
         """Close the database connection."""
         self.driver.close()
-
-
 class EnhancedSemanticSearch:
     """
     Perform semantic similarity search for:
@@ -1432,21 +1474,17 @@ class ResultCombiner:
     ) -> Tuple[List[Dict], Dict]:
         """
         Intelligently combine results based on query type.
-        
-        Args:
-            cypher_results: Results from Cypher queries (baseline)
-            semantic_results: Results from semantic similarity search
-            query_type: 'hotel' or 'visa' (auto-detected if not provided)
-            intent: The classified intent (optional)
-            max_results: Maximum number of results to return
-            
-        Returns:
-            Tuple of (combined_results, metadata)
         """
         # Auto-detect query type if not provided
         if not query_type:
             if intent and 'VISA' in intent:
                 query_type = 'visa'
+            elif intent and 'COMPARISON' in intent:
+                query_type = 'comparison'
+            elif intent and 'REVIEW' in intent:
+                query_type = 'review'
+            elif intent and 'LOCATION' in intent:
+                query_type = 'location'
             else:
                 query_type = 'hotel'
         
@@ -1455,11 +1493,111 @@ class ResultCombiner:
             return ResultCombiner._combine_visa_results(
                 cypher_results, semantic_results, max_results
             )
+        elif query_type == 'comparison':
+            return ResultCombiner._combine_comparison_results(
+                cypher_results, semantic_results, max_results
+            )
+        elif query_type == 'review':                        #Omar
+            return ResultCombiner._combine_review_results(  #Omar
+                cypher_results, semantic_results, max_results
+            )
+        elif query_type == 'location':                        #Omar
+            return ResultCombiner._combine_location_results(  #Omar
+                cypher_results, semantic_results, max_results
+            )
         else:
             return ResultCombiner._combine_hotel_results(
                 cypher_results, semantic_results, max_results
             )
     
+
+    @staticmethod #OMAR
+    def _combine_comparison_results(
+        cypher_results: List[Dict],
+        semantic_results: List[Dict],
+        max_results: int
+    ) -> Tuple[List[Dict], Dict]:
+        """
+        Handle comparison results - these have a different structure!
+        Comparison results have hotel_1_* and hotel_2_* fields, not hotel_id.
+        """
+        combined = []
+        
+        for idx, result in enumerate(cypher_results):
+            combined.append({
+                **result,
+                'source': 'cypher',
+                'cypher_rank': idx + 1,
+                'semantic_rank': None,
+                'similarity_score': None
+            })
+        
+        combined = combined[:max_results]
+        
+        metadata = {
+            'total_cypher_results': len(cypher_results),
+            'total_semantic_results': len(semantic_results),
+            'combined_unique_results': len(combined),
+            'returned_results': len(combined),
+            'results_in_both': 0,
+            'results_cypher_only': len(combined),
+            'results_semantic_only': 0,
+            'query_type': 'comparison',
+            'combination_strategy': 'cypher_only',
+            'note': 'Comparison queries use structured Cypher only'
+        }
+        
+        return combined, metadata
+    
+    @staticmethod #OMAR
+    def _combine_review_results(
+        cypher_results: List[Dict],
+        semantic_results: List[Dict],
+        max_results: int
+    ) -> Tuple[List[Dict], Dict]:
+        """
+        Handle review results - these contain review text and metadata.
+        Reviews don't need deduplication like hotels - each review is unique.
+        """
+        combined = []
+        
+        # Process Cypher results (reviews from structured queries)
+        for idx, result in enumerate(cypher_results):
+            combined.append({
+                **result,
+                'source': 'cypher',
+                'cypher_rank': idx + 1,
+                'semantic_rank': None,
+                'similarity_score': None
+            })
+        
+        # Add semantic results if any
+        for idx, result in enumerate(semantic_results):
+            combined.append({
+                **result,
+                'source': 'semantic',
+                'cypher_rank': None,
+                'semantic_rank': idx + 1
+            })
+        
+        # Limit results
+        combined = combined[:max_results]
+        
+        metadata = {
+            'query_type': 'review',
+            'total_cypher_results': len(cypher_results),
+            'total_semantic_results': len(semantic_results),
+            'combined_unique_results': len(combined),
+            'returned_results': len(combined),
+            'results_in_both': 0,  # Reviews don't deduplicate
+            'results_cypher_only': len([r for r in combined if r['source'] == 'cypher']),
+            'results_semantic_only': len([r for r in combined if r['source'] == 'semantic']),
+            'combination_strategy': 'review_chronological',
+            'note': 'Reviews are shown in chronological order (newest first)'
+        }
+        
+        return combined, metadata
+
     @staticmethod
     def _combine_hotel_results(
         cypher_results: List[Dict],
@@ -1609,6 +1747,45 @@ class ResultCombiner:
         
         return combined, metadata
 
+    @staticmethod #OMAR
+    def _combine_location_results(
+        cypher_results: List[Dict],
+        semantic_results: List[Dict],
+        max_results: int
+    ) -> Tuple[List[Dict], Dict]:
+        """
+        Handle location-based query results (individual hotels with location stats).
+        """
+        combined = []
+        
+        # Process Cypher results
+        for idx, result in enumerate(cypher_results):
+            combined.append({
+                **result,
+                'source': 'cypher',
+                'cypher_rank': idx + 1,
+                'semantic_rank': None,
+                'similarity_score': None
+            })
+        
+        # Limit results
+        combined = combined[:max_results]
+        
+        metadata = {
+            'query_type': 'location',
+            'total_cypher_results': len(cypher_results),
+            'total_semantic_results': len(semantic_results),
+            'combined_unique_results': len(combined),
+            'returned_results': len(combined),
+            'results_in_both': 0,
+            'results_cypher_only': len(combined),
+            'results_semantic_only': 0,
+            'combination_strategy': 'location_based',
+            'note': 'Location queries return individual hotels with statistics'
+        }
+        
+        return combined, metadata
+
 class PromptBuilder:
     """
     Builds structured prompts with context, persona, and task components.
@@ -1624,11 +1801,10 @@ class PromptBuilder:
         persona: str = None
     ) -> str:
         """
-        Build a structured prompt for the LLM.
-        Auto-detects query type and routes appropriately.
+        Build appropriate prompt based on query type.
         """
         # Auto-detect query type from metadata
-        if query_type is None:
+        if not query_type:
             query_type = metadata.get('query_type', 'hotel')
         
         # Route to appropriate builder
@@ -1636,12 +1812,289 @@ class PromptBuilder:
             return PromptBuilder._build_visa_prompt(
                 user_query, combined_results, metadata, persona
             )
+        elif query_type == 'comparison':
+            return PromptBuilder._build_comparison_prompt(
+                user_query, combined_results, metadata, persona
+            )
+        elif query_type == 'review':                    #OMAR
+            return PromptBuilder._build_review_prompt(  #OMAR
+                user_query, combined_results, metadata, persona
+            )
+        elif query_type == 'location':                    #OMAR
+            return PromptBuilder._build_location_prompt(  #OMAR
+                user_query, combined_results, metadata, persona
+            )
         else:
             return PromptBuilder._build_hotel_prompt(
                 user_query, combined_results, metadata, persona
             )
-    
+        
+
     @staticmethod
+    def _build_comparison_prompt(
+        user_query: str,
+        combined_results: List[Dict],
+        metadata: Dict,
+        persona: str = None
+    ) -> str:
+        """Build prompt for hotel comparison queries."""
+        if persona is None:
+            persona = "helpful hotel comparison assistant"
+        
+        context = PromptBuilder._format_comparison_context(combined_results, metadata)
+        
+        prompt = f"""You are a {persona} with access to a knowledge graph of hotels.
+
+    CONTEXT FROM KNOWLEDGE GRAPH:
+    {context}
+
+    USER QUESTION:
+    {user_query}
+
+    TASK:
+    Compare the hotels using ONLY the information provided in the context above.
+
+    INSTRUCTIONS:
+    1. Compare key attributes: ratings, cleanliness, comfort, facilities
+    2. Highlight significant differences between the hotels
+    3. Mention the locations (cities/countries)
+    4. Be objective and data-driven
+    5. Do not make up information not in the context
+
+    ANSWER:"""
+        
+        return prompt
+
+    @staticmethod #OMAR
+    def _format_comparison_context(results: List[Dict], metadata: Dict) -> str:
+        """Format comparison results into readable context."""
+        if not results:
+            return "No comparison results found in the knowledge graph."
+        
+        context_parts = []
+        
+        for comparison in results:
+            comp_info = []
+            comp_info.append("\nCOMPARISON:")
+            
+            # Hotel 1
+            comp_info.append(f"\nHotel 1: {comparison.get('hotel_1_name', 'Unknown')}")
+            comp_info.append(f"  Location: {comparison.get('city_1', 'Unknown')}, {comparison.get('country_1', 'Unknown')}")
+            comp_info.append(f"  Star Rating: {comparison.get('hotel_1_stars', 'N/A')} stars")
+            comp_info.append(f"  Overall Rating: {comparison.get('hotel_1_rating', 0):.1f}/10")
+            comp_info.append(f"  Cleanliness: {comparison.get('hotel_1_cleanliness', 0):.1f}/10")
+            comp_info.append(f"  Comfort: {comparison.get('hotel_1_comfort', 0):.1f}/10")
+            comp_info.append(f"  Facilities: {comparison.get('hotel_1_facilities', 0):.1f}/10")
+            
+            # Hotel 2
+            comp_info.append(f"\nHotel 2: {comparison.get('hotel_2_name', 'Unknown')}")
+            comp_info.append(f"  Location: {comparison.get('city_2', 'Unknown')}, {comparison.get('country_2', 'Unknown')}")
+            comp_info.append(f"  Star Rating: {comparison.get('hotel_2_stars', 'N/A')} stars")
+            comp_info.append(f"  Overall Rating: {comparison.get('hotel_2_rating', 0):.1f}/10")
+            comp_info.append(f"  Cleanliness: {comparison.get('hotel_2_cleanliness', 0):.1f}/10")
+            comp_info.append(f"  Comfort: {comparison.get('hotel_2_comfort', 0):.1f}/10")
+            comp_info.append(f"  Facilities: {comparison.get('hotel_2_facilities', 0):.1f}/10")
+            
+            # Differences
+            rating_diff = comparison.get('rating_difference', 0)
+            clean_diff = comparison.get('cleanliness_difference', 0)
+            comp_info.append(f"\nKey Differences:")
+            comp_info.append(f"  Rating Difference: {rating_diff:+.2f}")
+            comp_info.append(f"  Cleanliness Difference: {clean_diff:+.2f}")
+            
+            context_parts.append('\n'.join(comp_info))
+        
+        return '\n'.join(context_parts)    
+    
+
+    @staticmethod #OMAR
+    def _build_review_prompt(
+        user_query: str,
+        combined_results: List[Dict],
+        metadata: Dict,
+        persona: str = None
+    ) -> str:
+        """Build prompt for review queries."""
+        if persona is None:
+            persona = "helpful hotel review analyst"
+        
+        context = PromptBuilder._format_review_context(combined_results, metadata)
+        
+        prompt = f"""You are a {persona} with access to a database of hotel reviews from real travelers.
+
+    CONTEXT FROM KNOWLEDGE GRAPH:
+    {context}
+
+    IMPORTANT DATASET INFORMATION:
+    - These are real guest reviews from our curated database
+    - Reviews include detailed feedback on cleanliness, comfort, facilities, location, and staff
+    - Traveler demographics (type, age, gender) provide context for each review
+    - What you see is the complete set of relevant reviews for this query
+
+    USER QUESTION:
+    {user_query}
+
+    TASK:
+    Summarize what guests are saying based ONLY on the reviews provided above.
+
+    INSTRUCTIONS:
+    1. Identify common themes and patterns across the reviews
+    2. Mention specific aspects guests praised or criticized (cleanliness, comfort, facilities, etc.)
+    3. Note the traveler types (business, family, couple, solo) when relevant
+    4. Use specific scores from reviews to support your summary
+    5. Be balanced - mention both positives and negatives if present
+    6. Do not mention review dates, similarity scores, or internal metadata
+    7. Do not apologize for limited reviews or suggest there might be more
+    8. NEVER make up review content or guest feedback not in the context
+
+    ANSWER:"""
+        
+        return prompt
+
+    @staticmethod #OMAR
+    def _format_review_context(results: List[Dict], metadata: Dict) -> str:
+        """Format review results into readable context."""
+        if not results:
+            return "No reviews found in the knowledge graph for this query."
+        
+        context_parts = []
+        
+        for idx, review in enumerate(results, 1):
+            review_info = []
+            
+            # Header with hotel and reviewer info
+            hotel_name = review.get('hotel_name', 'Unknown Hotel')
+            city = review.get('city', 'Unknown City')
+            traveler_type = review.get('traveler_type', 'Traveler')
+            traveler_age = review.get('traveler_age', '')
+            traveler_gender = review.get('traveler_gender', '')
+            
+            # Build traveler description
+            traveler_desc = f"{traveler_type}"
+            if traveler_age:
+                traveler_desc += f", {traveler_age} years old"
+            if traveler_gender:
+                traveler_desc += f", {traveler_gender}"
+            
+            review_info.append(f"\n{idx}. Review of {hotel_name} ({city})")
+            review_info.append(f"   Reviewer: {traveler_desc}")
+            
+            # Ratings
+            overall = review.get('overall_score')
+            if overall:
+                review_info.append(f"   Overall Rating: {overall}/10")
+            
+            # Individual scores if available
+            scores = []
+            if review.get('cleanliness_score'):
+                scores.append(f"Cleanliness: {review['cleanliness_score']}/10")
+            if review.get('comfort_score'):
+                scores.append(f"Comfort: {review['comfort_score']}/10")
+            if review.get('facilities_score'):
+                scores.append(f"Facilities: {review['facilities_score']}/10")
+            if review.get('location_score'):
+                scores.append(f"Location: {review['location_score']}/10")
+            if review.get('staff_score'):
+                scores.append(f"Staff: {review['staff_score']}/10")
+            
+            if scores:
+                review_info.append(f"   Ratings: {', '.join(scores)}")
+            
+            # Review text (most important!)
+            review_text = review.get('review_text', '')
+            if review_text:
+                # Truncate very long reviews to avoid token limits
+                if len(review_text) > 500:
+                    review_text = review_text[:500] + "..."
+                review_info.append(f"   Review: \"{review_text}\"")
+            
+            context_parts.append('\n'.join(review_info))
+        
+        return '\n'.join(context_parts)
+
+
+    @staticmethod #OMAR
+    def _build_location_prompt(
+        user_query: str,
+        combined_results: List[Dict],
+        metadata: Dict,
+        persona: str = None
+    ) -> str:
+        """Build prompt for location-based statistical queries."""
+        if persona is None:
+            persona = "helpful hotel statistics analyst"
+        
+        context = PromptBuilder._format_location_context(combined_results, metadata)
+        
+        prompt = f"""You are a {persona} with access to aggregated hotel statistics across cities and countries.
+
+    CONTEXT FROM KNOWLEDGE GRAPH:
+    {context}
+
+    IMPORTANT DATASET INFORMATION:
+    - These are aggregated statistics from our curated hotel database
+    - Data includes hotel counts, average ratings, and key metrics per city/country
+    - What you see is authoritative statistical data
+    - Our database contains ONE carefully selected top hotel per city
+    - For cities with 5-star hotels, the count will always be 1
+    - What you see represents cities that HAVE 5-star hotels, not quantity comparisons
+
+    USER QUESTION:
+    {user_query}
+
+    TASK:
+    Provide statistical insights based ONLY on the data provided above.
+
+    INSTRUCTIONS:
+    1. Present the statistics clearly and objectively
+    2. Highlight cities/countries with the highest/lowest metrics
+    3. Use exact numbers from the context (hotel counts, ratings, etc.)
+    4. Do not recommend specific hotels - focus on aggregated statistics
+    5. Do not mention metadata, search methods, or internal processes
+    6. NEVER make up statistics not present in the context
+
+    ANSWER:"""
+        
+        return prompt
+
+    @staticmethod #OMAR
+    def _format_location_context(results: List[Dict], metadata: Dict) -> str:
+        """Format location statistics into readable context."""
+        if not results:
+            return "No location statistics found in the knowledge graph."
+        
+        context_parts = []
+        
+        for idx, location in enumerate(results, 1):
+            loc_info = []
+            city = location.get('city', 'Unknown City')
+            country = location.get('country', 'Unknown Country')
+            
+            loc_info.append(f"\n{idx}. {city}, {country}")
+            
+            # Hotel count
+            if 'number_of_hotels' in location:
+                loc_info.append(f"   Total Hotels: {location['number_of_hotels']}")
+            
+            # Average ratings
+            if 'average_rating' in location:
+                loc_info.append(f"   Average Rating: {location['average_rating']:.1f}/10")
+            if 'average_cleanliness' in location:
+                loc_info.append(f"   Average Cleanliness: {location['average_cleanliness']:.1f}/10")
+            if 'average_comfort' in location:
+                loc_info.append(f"   Average Comfort: {location['average_comfort']:.1f}/10")
+            if 'average_facilities' in location:
+                loc_info.append(f"   Average Facilities: {location['average_facilities']:.1f}/10")
+            
+            # Star ratings
+            if 'highest_star_rating' in location:
+                loc_info.append(f"   Highest Star Rating: {location['highest_star_rating']} stars")
+            
+            context_parts.append('\n'.join(loc_info))
+        
+        return '\n'.join(context_parts)
+    
+    @staticmethod 
     def _build_hotel_prompt(
         user_query: str,
         combined_results: List[Dict],
@@ -1671,14 +2124,19 @@ USER QUESTION:
 TASK:
 Answer the user's question using ONLY the information provided in the context above. 
 
+IMPORTANT DATASET INFORMATION:
+- Our database contains ONE carefully selected top hotel per city
+- What you see in the context is the complete available data for that location
+- This is curated, high-quality data - not an incomplete sample
+
 INSTRUCTIONS:
-1. Base your answer solely on the retrieved hotel information
-2. If the context doesn't contain enough information, say so clearly
-3. Cite specific hotel names and details when possible
-4. Be concise but informative
-5. If multiple hotels match, mention the top 3-5 options
-6. Include relevant ratings, locations, and key features
-7. Do not make up or hallucinate information not present in the context
+1. Provide specific hotel recommendations with exact details from the context
+2. Use ONLY hotel names, ratings, and features that appear in the retrieved data
+3. Be confident and assertive - this is authoritative data from our database
+4. Include star rating, location, and key features (cleanliness, comfort, facilities)
+5. Do not apologize for limited results or suggest searching elsewhere
+6. Do not mention similarity scores, search methods, or internal metadata
+7. NEVER make up hotel names, ratings, or details not in the context
 
 ANSWER:"""
         
@@ -1763,18 +2221,18 @@ ANSWER:"""
                 hotel_info.append(f"   Facilities: {hotel['facilities']:.1f}/10")
             
             # Source info
-            source_info = []
-            if hotel['source'] == 'both':
-                source_info.append("Found in structured search AND semantic similarity")
-            elif hotel['source'] == 'cypher':
-                source_info.append("Found in structured search")
-            else:
-                source_info.append("Found in semantic similarity search")
+            # source_info = []
+            # if hotel['source'] == 'both':
+            #     source_info.append("Found in structured search AND semantic similarity")
+            # elif hotel['source'] == 'cypher':
+            #     source_info.append("Found in structured search")
+            # else:
+            #     source_info.append("Found in semantic similarity search")
             
-            if hotel.get('similarity_score'):
-                source_info.append(f"Similarity: {hotel['similarity_score']:.3f}")
+            # if hotel.get('similarity_score'):
+            #     source_info.append(f"Similarity: {hotel['similarity_score']:.3f}")
             
-            hotel_info.append(f"   [Source: {', '.join(source_info)}]")
+            # hotel_info.append(f"   [Source: {', '.join(source_info)}]")
             
             context_parts.append('\n'.join(hotel_info))
         

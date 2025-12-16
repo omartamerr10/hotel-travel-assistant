@@ -124,12 +124,12 @@ with st.sidebar:
     st.markdown("## ⚙️ Configuration")
     
     # Task Selection
-    st.markdown("### 📋 Task Selection")
-    task = st.selectbox(
-        "Select Task",
-        ["Question Answering", "Hotel Recommendation", "Booking Assistant"],
-        help="Choose the type of assistance you need"
-    )
+    # st.markdown("### 📋 Task Selection")
+    # task = st.selectbox(
+    #     "Select Task",
+    #     ["Question Answering", "Hotel Recommendation", "Booking Assistant"],
+    #     help="Choose the type of assistance you need"
+    # )
     
     st.markdown("---")
     
@@ -178,7 +178,6 @@ with st.sidebar:
         else:
             semantic_model = None 
             
-        st.markdown("---")
         
         # 3. LLM Selection
         st.markdown("### 🤖 LLM Model")
@@ -341,7 +340,7 @@ if submit_button and query_input and pipeline:
                 st.session_state.query_history.append({
                     "query": query_input,
                     "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                    "retrieval_method": retrieval_method,
+                    "retrieval_method": f"Baseline: {use_baseline}, Embeddings: {use_embeddings}",
                     "llm_model": llm_model
                 })
                 
@@ -416,12 +415,11 @@ if st.session_state.benchmark_results is not None and app_mode == "Model Benchma
             "Time (s)": round(data['time'], 2),
             "Tokens": data['tokens'],
             "Cost ($)": float(f"{data['cost']:.5f}"),
-            "Context Adherence (%)": round(data['accuracy'], 1), 
         })
         
         with col:
             st.subheader(m_key)
-            st.caption(f"⏱️ {data['time']:.2f}s | 🎯 Acc: {data['accuracy']:.1f}%")
+            st.caption(f"⏱️ {data['time']:.2f}s")
             st.info(data['answer'])
     
     # Evaluation Table
@@ -483,9 +481,7 @@ if st.session_state.benchmark_results is not None and app_mode == "Model Benchma
     # Calculate button
     if st.button("🏆 Calculate Final Score", key="calc_score"):
         df_calc = edited_df.copy()
-        df_calc["Accuracy (Score)"] = df_calc["Context Adherence (%)"].astype(float) / 100 * 5
-        df_calc["Total Score"] = (
-            df_calc["Accuracy (Score)"] + 
+        df_calc["Total Score"] = ( 
             df_calc["Human Relevance (1-5)"] + 
             df_calc["Human Naturalness (1-5)"]
         )
@@ -562,7 +558,7 @@ if st.session_state.current_results:
         st.markdown("---")
         
         # Show retrieved results
-        st.markdown("### 📋 Retrieved Hotel Data")
+        st.markdown("### 📋 Retrieved Data")
         
         if results.get('combined_results'):
             for idx, hotel in enumerate(results['combined_results'], 1):

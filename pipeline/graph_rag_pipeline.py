@@ -115,9 +115,23 @@ class GraphRAGPipeline:
                     intent_str, entities
                 )
                 
+                # TEMPORARY DEBUG - REMOVE AFTER TESTING
+                print(f"\n{'='*50}")
+                print(f"🔍 DEBUG INFO")
+                print(f"{'='*50}")
+                print(f"Intent: {intent_str}")
+                print(f"Entities: {entities}")
+                print(f"Params: {params}")
+                print(f"{'='*50}\n")
+
                 cypher_results = self.query_executor.execute_query(
                     intent_str, params
                 )
+
+                # MORE DEBUG
+                print(f"✅ Cypher returned {len(cypher_results)} results")
+                if cypher_results:
+                    print(f"First result: {cypher_results[0]}")
                 
                 # Safe template loading
                 template = ""
@@ -191,17 +205,32 @@ class GraphRAGPipeline:
         )
 
         # Add query type to metadata
-        metadata['query_type'] = 'visa' if 'VISA' in intent_str else 'hotel'
-
-        retrieval_time = time.time() - start_time
-        metadata['retrieval_time'] = retrieval_time
+        if 'VISA' in intent_str:
+            metadata['query_type'] = 'visa'
+        elif 'COMPARISON' in intent_str:
+            metadata['query_type'] = 'comparison'
+        elif 'REVIEW' in intent_str: #OMAR
+            metadata['query_type'] = 'review' 
+        elif 'LOCATION' in intent_str:  #OMAR
+            metadata['query_type'] = 'location'  #OMAR
+        else:
+            metadata['query_type'] = 'hotel'
         
         # STEP 5: Build Prompt
         if verbose:
             print("\n📍 STEP 5: Building Prompt...")
 
         # Detect query type for prompt building
-        query_type = 'visa' if 'VISA' in intent_str else 'hotel'
+        if 'VISA' in intent_str:
+            query_type = 'visa'
+        elif 'COMPARISON' in intent_str:
+            query_type = 'comparison'
+        elif 'REVIEW' in intent_str: #OMAR
+            query_type = 'review'  #OMAR
+        elif 'LOCATION' in intent_str:  #OMAR
+            query_type = 'location'  #OMAR
+        else:
+            query_type = 'hotel'
 
         prompt = PromptBuilder.build_prompt(
             user_query=user_query,

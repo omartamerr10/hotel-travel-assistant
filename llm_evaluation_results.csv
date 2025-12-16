@@ -1,54 +1,271 @@
 test_id,query,difficulty,intent,model,answer,response_time,tokens,cost,context_adherence,results_retrieved
-HS_001,Find 5-star hotels in Paris with excellent cleanliness,Easy,HOTEL_SEARCH,llama-3.1-8b,"Based on the provided context, I found one 5-star hotel in Paris that matches your criteria.
+HS_001,Find 5-star hotels in Paris with excellent cleanliness,Easy,HOTEL_SEARCH,llama-3.1-8b,"Based on our database, I highly recommend the following 5-star hotel in Paris for its excellent cleanliness:
 
-There is only one hotel that meets the criteria: L'Étoile Palace. Here are the details:
+1. **L'Étoile Palace**
+   - Location: Paris, France
+   - Star Rating: 5.0 stars
+   - Average Score: 8.9/10
+   - Cleanliness: 8.8/10
+   - Comfort: 9.4/10
+   - Facilities: 8.7/10
 
-- Hotel Name: L'Étoile Palace
-- Location: Paris, France
-- Star Rating: 5.0 stars
-- Average Score: 8.9/10
-- Cleanliness: 8.8/10
-
-L'Étoile Palace stands out for its excellent cleanliness, with a rating of 8.8/10, and overall high ratings across all categories.",0.4506962299346924,463,3.7040000000000005e-05,0.0,1
-HS_001,Find 5-star hotels in Paris with excellent cleanliness,Easy,HOTEL_SEARCH,llama-3.3-70b,"Based on the provided context, I found one 5-star hotel in Paris with excellent cleanliness: L'Étoile Palace. It has a star rating of 5.0 stars, an average score of 8.9/10, and a cleanliness rating of 8.8/10. It is located in Paris, France. Unfortunately, the context only contains information about this one hotel, so I cannot provide multiple options.",0.3464469909667969,427,0.00033733,0.0,1
-HS_001,Find 5-star hotels in Paris with excellent cleanliness,Easy,HOTEL_SEARCH,qwen-32b,"Based on the provided context, the following hotel in Paris meets your criteria:
-
-**L'Étoile Palace**  
-- **Location**: Paris, France  
-- **Star Rating**: 5.0 stars  
-- **Cleanliness**: 8.8/10  
-- **Average Score**: 8.9/10  
-- **Comfort**: 9.4/10  
-- **Facilities**: 8.7/10  
-
-This hotel is the only 5-star option in the provided data with a strong cleanliness rating. Let me know if you'd like further details!",1.0325398445129395,749,0.00044191,0.0,1
-VI_001,Do I need a visa to travel from Egypt to France?,Easy,VISA_INQUIRY,llama-3.1-8b,"Based on the information provided in the context, you do need a visa to travel from Egypt to France. 
+This hotel stands out for its exceptional cleanliness, with a score of 8.8/10, making it an excellent choice for travelers seeking a clean and comfortable stay in Paris.",0.5498499870300293,519,4.152e-05,0.0,1
+HS_001,Find 5-star hotels in Paris with excellent cleanliness,Easy,HOTEL_SEARCH,llama-3.3-70b,"For a 5-star hotel in Paris with excellent cleanliness, I recommend L'Étoile Palace. This hotel is located in Paris, France, and boasts a 5.0-star rating. With a cleanliness score of 8.8/10, you can expect a highly sanitized and comfortable environment. Additionally, L'Étoile Palace offers excellent comfort with a score of 9.4/10 and well-regarded facilities with a score of 8.7/10. Overall, L'Étoile Palace has an average score of 8.9/10, making it an outstanding choice for your stay in Paris.",0.8459789752960205,517,0.00040843000000000005,0.0,1
+HS_001,Find 5-star hotels in Paris with excellent cleanliness,Easy,HOTEL_SEARCH,qwen-32b,"L'Étoile Palace in Paris, France, is a 5.0-star hotel with excellent cleanliness (8.8/10), exceptional comfort (9.4/10), and strong facilities (8.7/10). It maintains an overall average score of 8.9/10, making it a top-tier choice for discerning travelers.",1.3999183177947998,696,0.00041064,0.0,1
+VI_001,Do I need a visa to travel from Egypt to France?,Easy,VISA_INQUIRY,llama-3.1-8b,"Based on the provided context, you do need a visa to travel from Egypt to France. 
 
 Visa Required: YES
 Visa Type: Tourist Visa
 
-Please note that this information is based on the specific context provided and might not reflect the most up-to-date or comprehensive visa requirements. It is always recommended to verify visa requirements with the relevant authorities or consult the official government websites for the most accurate information.",0.3908863067626953,739,5.912e-05,0.0,10
-VI_001,Do I need a visa to travel from Egypt to France?,Easy,VISA_INQUIRY,llama-3.3-70b,"To travel from Egypt to France, a visa is required. The specific visa type needed is a Tourist Visa. This information is based on a structured search with a high similarity score of 0.834.",0.38690733909606934,695,0.0005490499999999999,0.0,10
-VI_001,Do I need a visa to travel from Egypt to France?,Easy,VISA_INQUIRY,qwen-32b,"Yes, a visa is required for travel from Egypt to France. The required visa type is a **Tourist Visa**.  
+Please note that this information is based on the knowledge graph and may be subject to change. It's always best to verify with the relevant authorities for the most up-to-date information.",0.3049345016479492,722,5.776e-05,33.33333333333333,10
+VI_001,Do I need a visa to travel from Egypt to France?,Easy,VISA_INQUIRY,llama-3.3-70b,"To travel from Egypt to France, a visa is required. The specific visa type needed for this trip is a Tourist Visa. This information is based on a structured search with a high similarity score of 0.834.",0.29938173294067383,698,0.00055142,33.33333333333333,10
+VI_001,Do I need a visa to travel from Egypt to France?,Easy,VISA_INQUIRY,qwen-32b,"Yes, a visa is required for travel from **Egypt to France**. The required visa type is a **Tourist Visa**.  
 
-**Countries involved**:  
-- **From**: Egypt  
-- **To**: France  
+This information is explicitly stated in the context provided (Similarity: 0.834). No other country pairs in the context directly apply to this query.",0.7387814521789551,899,0.00053041,50.0,10
+HC_001,Compare hotels in Paris vs London,Medium,HOTEL_COMPARISON,llama-3.1-8b,"Based on the provided context, here's a comparison of the two hotels:
 
-This information is explicitly stated in the provided context (Source: Found in structured search AND semantic similarity, Similarity: 0.834). No additional details are needed for this specific route.",0.9712448120117188,953,0.00056227,25.0,10
-HC_001,Compare hotels in Paris vs London,Medium,HOTEL_COMPARISON,llama-3.1-8b,"Based on the information provided, we have a single hotel result from Paris, France. Since we're comparing hotels in Paris vs London, I'll provide information about the Paris hotel and note the lack of information about London hotels.
+**Hotel Comparison: L'Étoile Palace (Paris, France) vs The Royal Compass (London, United Kingdom)**
 
-The top hotel in Paris is L'Étoile Palace, with a 5.0-star rating and an average score of 8.9/10. This hotel excels in comfort, with a rating of 9.4/10, and has a high cleanliness rating of 8.8/10. It also has a decent facilities rating of 8.7/10.
+**Key Attributes:**
 
-Unfortunately, we don't have any information about hotels in London to compare with L'Étoile Palace. The context only provides details about this single hotel in Paris. If you'd like to know more about hotels in London, I can try to assist you with a new search.",0.48775506019592285,515,4.1200000000000005e-05,0.0,1
-HC_001,Compare hotels in Paris vs London,Medium,HOTEL_COMPARISON,llama-3.3-70b,"Based on the provided context, I can only compare one hotel in Paris, as there is no information about hotels in London. The L'Étoile Palace in Paris has a 5.0-star rating, with an average score of 8.9/10. It excels in comfort with a score of 9.4/10, and has satisfactory cleanliness and facilities scores of 8.8/10 and 8.7/10, respectively. Unfortunately, I don't have enough information to compare hotels in Paris to those in London, as the context only contains data about one hotel in Paris.",0.5603201389312744,458,0.00036182,0.0,1
-HC_001,Compare hotels in Paris vs London,Medium,HOTEL_COMPARISON,qwen-32b,"The context provided contains information about only one hotel in Paris, **L'Étoile Palace**, with no data about hotels in London. Here's the available detail:  
+- **Ratings:** Both hotels have a 5.0-star rating and an overall rating of 8.9/10, indicating they are of high quality.
+- **Cleanliness:** The Royal Compass (London) has a slightly higher cleanliness rating of 9.0/10 compared to L'Étoile Palace (Paris) with 8.8/10.
+- **Comfort:** L'Étoile Palace (Paris) has a higher comfort rating of 9.4/10 compared to The Royal Compass (London) with 9.2/10.
+- **Facilities:** Both hotels have similar facility ratings of 8.7/10 and 8.8/10, respectively.
 
-- **L'Étoile Palace (Paris)**:  
-  - **Star Rating**: 5.0 stars  
-  - **Average Score**: 8.9/10  
-  - **Cleanliness**: 8.8/10  
-  - **Comfort**: 9.4/10  
-  - **Facilities**: 8.7/10  
+**Significant Differences:**
 
-No hotels in London are included in the provided context, so a direct comparison cannot be made. Additional data about London hotels would be required to complete this comparison.",1.0055382251739502,638,0.00037642000000000003,0.0,1
+- Cleanliness: The Royal Compass (London) has a 0.2-point higher cleanliness rating than L'Étoile Palace (Paris).
+- Comfort: L'Étoile Palace (Paris) has a 0.2-point higher comfort rating than The Royal Compass (London).
+
+**Locations:**
+
+- L'Étoile Palace is located in Paris, France.
+- The Royal Compass is located in London, United Kingdom.
+
+Overall, both hotels are of high quality, but there are slight differences in cleanliness and comfort ratings.",0.5838422775268555,648,5.1840000000000005e-05,0.0,1
+HC_001,Compare hotels in Paris vs London,Medium,HOTEL_COMPARISON,llama-3.3-70b,"Comparing hotels in Paris, France, and London, United Kingdom, we have L'Étoile Palace in Paris and The Royal Compass in London. Both hotels share a 5.0-star rating. 
+
+In terms of overall ratings, both hotels have an overall rating of 8.9/10, indicating a very high level of guest satisfaction. However, The Royal Compass has a slight edge with a +0.07 rating difference.
+
+Looking at cleanliness, The Royal Compass in London has a higher rating of 9.0/10 compared to L'Étoile Palace's 8.8/10, resulting in a -0.20 cleanliness difference for L'Étoile Palace.
+
+For comfort, L'Étoile Palace in Paris has a rating of 9.4/10, which is slightly higher than The Royal Compass's 9.2/10.
+
+Regarding facilities, The Royal Compass has a rating of 8.8/10, which is marginally higher than L'Étoile Palace's 8.7/10.
+
+Both hotels are located in major European cities, with L'Étoile Palace situated in the romantic city of Paris, France, and The Royal Compass in the vibrant city of London, United Kingdom.
+
+Overall, the comparison highlights that while both hotels are highly rated, there are slight differences in their cleanliness, comfort, and facilities ratings. The choice between the two may depend on the specific priorities of the traveler.",1.047978162765503,641,0.00050639,0.0,1
+HC_001,Compare hotels in Paris vs London,Medium,HOTEL_COMPARISON,qwen-32b,"**Comparison of L'Étoile Palace (Paris, France) and The Royal Compass (London, United Kingdom):**  
+
+1. **Ratings:**  
+   - Both hotels have the same **5.0-star rating** and **overall rating of 8.9/10**.  
+
+2. **Cleanliness:**  
+   - The Royal Compass (London) scores higher in cleanliness (**9.0/10**) compared to L'Étoile Palace (Paris) (**8.8/10**), a **difference of 0.2**.  
+
+3. **Comfort:**  
+   - L'Étoile Palace (Paris) excels in comfort (**9.4/10**) over The Royal Compass (London) (**9.2/10**), a **difference of 0.2**.  
+
+4. **Facilities:**  
+   - Facilities are nearly equal: L'Étoile Palace (**8.7/10**) vs. The Royal Compass (**8.8/10**).  
+
+**Key Differences Summary:**  
+- **Cleanliness:** The Royal Compass (London) is 0.2 points cleaner.  
+- **Comfort:** L'Étoile Palace (Paris) offers 0.2 points higher comfort.  
+- **Overall Rating:** Both hotels are tied at 8.9/10.  
+
+**Locations:**  
+- L'Étoile Palace is in **Paris, France**.  
+- The Royal Compass is in **London, United Kingdom**.  
+
+Both hotels are 5-star and highly rated, with slight advantages in specific categories depending on location.",1.9934358596801758,1212,0.00071508,0.0,1
+RQ_001,What do people say about hotels in Dubai?,Medium,REVIEW_QUERY,llama-3.1-8b,"Based on the provided reviews, guests have shared their experiences and opinions about The Golden Oasis hotel in Dubai. Here's a summary of the common themes and patterns:
+
+**Overall Impression:** Guests have given the hotel high ratings, with an average overall rating of 9.1/10. This suggests that the hotel has met or exceeded their expectations in various aspects.
+
+**Cleanliness:** Guests have praised the hotel's cleanliness, with ratings ranging from 8.6/10 to 10.0/10. Reviewers have mentioned that the hotel is clean and well-maintained, with some even giving it a perfect score.
+
+**Comfort:** Comfort is another area where guests have been impressed, with ratings ranging from 8.8/10 to 10.0/10. Reviewers have mentioned that the hotel's rooms are comfortable and well-equipped.
+
+**Facilities:** Guests have mixed opinions about the hotel's facilities, with ratings ranging from 8.7/10 to 9.3/10. Some reviewers have praised the hotel's facilities, while others have mentioned that they are average.
+
+**Location:** The hotel's location has been praised by guests, with ratings ranging from 8.6/10 to 9.5/10. Reviewers have mentioned that the hotel is conveniently located and easily accessible.
+
+**Staff:** Guests have consistently praised the hotel's staff, with ratings ranging from 8.6/10 to 9.9/10. Reviewers have mentioned that the staff is friendly, helpful, and attentive to their needs.
+
+**Traveler Types:** Couples and solo travelers have been the most frequent reviewers, with some mentioning that the hotel is suitable for families as well.
+
+**Specific Comments:** Some reviewers have mentioned that the hotel's cultural television and common areas are worth learning about. Others have praised the hotel's staff for their service and attention to detail.
+
+**Common Themes:** The reviews suggest that guests value cleanliness, comfort, and staff service when staying at The Golden Oasis hotel in Dubai. While some guests have mentioned that the facilities are average, the hotel's location and staff have been consistently praised.
+
+Overall, the reviews suggest that The Golden Oasis hotel in Dubai is a well-regarded hotel that meets the expectations of its guests in various aspects.",0.9807722568511963,1891,0.00015128,57.89473684210527,10
+RQ_001,What do people say about hotels in Dubai?,Medium,REVIEW_QUERY,llama-3.3-70b,"Guests have generally positive opinions about The Golden Oasis in Dubai, with overall ratings ranging from 8.8 to 9.3 out of 10. Many reviewers praised the hotel's cleanliness, with scores as high as 10.0 out of 10, and comfort, with multiple reviewers giving perfect scores of 10.0 out of 10. The staff also received high praise, with scores ranging from 8.6 to 9.9 out of 10.
+
+Couples, in particular, seemed to enjoy their stay, with one couple giving a perfect score for cleanliness and comfort. Solo travelers also had positive experiences, with one solo traveler aged 18-24 giving a score of 9.3 out of 10 and praising the staff with a score of 9.8 out of 10.
+
+The location of the hotel was also well-received, with scores ranging from 8.6 to 9.5 out of 10. However, some reviewers found the facilities to be slightly less impressive, with scores ranging from 8.7 to 9.3 out of 10.
+
+While the reviews are generally positive, some guests found certain aspects to be slightly lacking. For example, one couple gave a score of 8.6 out of 10 for staff, which is lower than the average staff score. Additionally, one solo traveler gave a score of 8.5 out of 10 for cleanliness, which is lower than the average cleanliness score.
+
+Overall, guests seem to appreciate the hotel's cleanliness, comfort, and staff, but may have some minor criticisms regarding the facilities and location.",1.2921359539031982,1761,0.00139119,28.57142857142857,10
+RQ_001,What do people say about hotels in Dubai?,Medium,REVIEW_QUERY,qwen-32b,"Guests reviewing The Golden Oasis in Dubai consistently highlight its **high cleanliness (average 9.2/10)**, **comfort (average 9.7/10)**, and **staff service (average 9.3/10)** as standout strengths. The hotel’s **prime location** (average 9.2/10) is frequently praised, with travelers noting its convenience and accessibility.  
+
+**Facilities** receive mixed feedback, scoring an average of 8.9/10, with some guests describing them as ""adequate"" but not exceptional. For example, one reviewer noted facilities at 8.8/10, while another praised them at 9.3/10.  
+
+**Traveler demographics**:  
+- **Couples** (ages 25–44) dominate the reviews, with multiple high ratings (e.g., 9.2–9.3/10 overall).  
+- **Business travelers** and **solo guests** also praise the hotel, though younger solo travelers (18–24 years old) gave slightly lower scores (8.8/10 overall).  
+
+**Specific highlights**:  
+- A 35–44-year-old male couple reviewer gave perfect scores for **comfort (10/10)** and **cleanliness (10/10)**.  
+- A business traveler (35–44, female) highlighted the **staff (9.7/10)** and **location (9.5/10)**.  
+- One solo traveler (45–54, female) noted exceptional **staff service (9.9/10)** but slightly lower **cleanliness (8.6/10)**.  
+
+**Criticisms**: Minor complaints include inconsistent **staff service** (one review scored 8.6/10) and **facilities** (lowest 8.7/10).  
+
+Overall, guests describe The Golden Oasis as a **luxurious, well-located hotel** with near-universal praise for cleanliness and comfort, though some suggest incremental improvements in facilities and staff consistency.",2.305182456970215,2357,0.0013906300000000001,18.181818181818183,10
+RQ_002,Show me reviews from business travelers about hotels in Tokyo,Hard,REVIEW_QUERY,llama-3.1-8b,"Based on the provided reviews, business travelers have shared their experiences at the Kyo-to Grand hotel in Tokyo. Here's a summary of their feedback:
+
+**Overall Impression:** Guests generally have a positive impression of the hotel, with an average overall rating of 8.9/10. They praise the hotel's cleanliness, facilities, and staff.
+
+**Cleanliness:** Guests appreciate the hotel's cleanliness, with ratings ranging from 8.4/10 to 9.3/10. Reviewer 2, a 35-44-year-old business traveler, gave a perfect score of 9.3/10 for cleanliness.
+
+**Comfort:** Comfort ratings vary from 8.3/10 to 9.2/10. Reviewer 9, a 25-34-year-old business traveler, praised the hotel's comfort, giving it a score of 9.0/10.
+
+**Facilities:** Guests appreciate the hotel's facilities, with ratings ranging from 8.7/10 to 9.7/10. Reviewer 6, a 25-34-year-old female business traveler, gave a perfect score of 9.7/10 for facilities.
+
+**Location:** While some guests praise the hotel's location, others find it less convenient. Reviewer 3, a 45-54-year-old business traveler, gave a score of 9.1/10 for location, while Reviewer 8, a 25-34-year-old business traveler, rated it 8.5/10.
+
+**Staff:** Guests consistently praise the hotel's staff, with ratings ranging from 9.2/10 to 9.8/10. Reviewer 5, an 18-24-year-old business traveler, gave a perfect score of 9.8/10 for staff.
+
+**Common Themes:** Guests appreciate the hotel's cleanliness, comfort, and facilities. They also praise the hotel's staff, citing them as friendly and helpful. However, some guests find the location less convenient.
+
+**Traveler Types:** All reviews are from business travelers, with a mix of male and female guests across various age groups.
+
+Overall, business travelers have a positive experience at the Kyo-to Grand hotel in Tokyo, praising its cleanliness, facilities, and staff. However, some guests find the location less convenient.",0.962688684463501,1897,0.00015176000000000002,39.130434782608695,10
+RQ_002,Show me reviews from business travelers about hotels in Tokyo,Hard,REVIEW_QUERY,llama-3.3-70b,"Business travelers visiting Tokyo have generally positive experiences with the Kyo-to Grand hotel. The overall ratings range from 8.7 to 9.1 out of 10, indicating a high level of satisfaction. 
+
+Guests consistently praise the hotel's staff, with ratings as high as 9.8 out of 10, and most ratings above 9.3. The staff's exceptional service is a common theme across the reviews. 
+
+The hotel's facilities and cleanliness also receive high praise, with most ratings above 8.7 out of 10. For example, one reviewer gave a 9.5 out of 10 for facilities, and another gave a 9.3 out of 10 for cleanliness. 
+
+Location is also a strong aspect, with most reviewers giving it a rating above 8.5 out of 10. One reviewer gave it a 9.4 out of 10, indicating that the hotel's location is convenient for business travelers.
+
+Comfort is also well-regarded, with most ratings above 8.5 out of 10. However, there is some variation in the comfort ratings, with one reviewer giving it an 8.5 out of 10 and another giving it a 9.2 out of 10.
+
+While the reviews are generally positive, there is limited criticism or negative feedback provided by the guests. The reviews do not mention any significant issues with the hotel, but rather focus on the strengths of the staff, facilities, and location. 
+
+Overall, business travelers can expect a high level of service, clean and comfortable accommodations, and a convenient location when staying at the Kyo-to Grand hotel in Tokyo.",1.4057981967926025,1760,0.0013904,8.695652173913043,10
+RQ_002,Show me reviews from business travelers about hotels in Tokyo,Hard,REVIEW_QUERY,qwen-32b,"Business travelers staying at Kyo-to Grand in Tokyo consistently highlight strong performance across multiple categories, with particular emphasis on **staff quality**, **facilities**, and **location**. Here’s a summary of key insights from the reviews:  
+
+### **Common Themes & Ratings**  
+1. **Staff**  
+   - Praised as a standout strength, with scores ranging from **9.2 to 9.8/10**.  
+   - Reviewers across age groups (18–55+) and genders note exceptional service, suggesting consistent professionalism.  
+
+2. **Facilities**  
+   - Rated highly (**8.7 to 9.7/10**), with modern amenities appearing to meet business travelers’ needs.  
+   - Slightly lower scores in one review (8.8/10) may reflect minor inconsistencies in maintenance or availability.  
+
+3. **Location**  
+   - Strong performance (**8.5 to 9.4/10**), likely due to the hotel’s strategic placement for business activities in Tokyo.  
+
+4. **Cleanliness**  
+   - Generally positive (**8.4 to 9.3/10**), though a few reviews note slight dips (e.g., 8.4/10), potentially indicating room for improvement in specific areas like housekeeping frequency.  
+
+5. **Comfort**  
+   - Mixed but still favorable (**8.5 to 9.2/10**). Some",2.6916563510894775,2481,0.00146379,21.428571428571427,10
+RA_001,What are the highest rated hotels in Dubai?,Medium,RATING_ANALYSIS,llama-3.1-8b,"Based on our database, the highest rated hotel in Dubai is The Golden Oasis. 
+
+Here are the details:
+
+- Location: Dubai, United Arab Emirates
+- Star Rating: 5.0 stars
+- Average Score: 9.1/10
+- Key Features:
+  - Cleanliness: 9.3/10
+  - Comfort: 9.5/10
+  - Facilities: 9.6/10
+
+The Golden Oasis is an exceptional choice for your stay in Dubai, offering a luxurious experience with top-notch amenities and services.",1.4502840042114258,498,3.9840000000000005e-05,0.0,1
+RA_001,What are the highest rated hotels in Dubai?,Medium,RATING_ANALYSIS,llama-3.3-70b,"For the highest rated hotel in Dubai, I highly recommend The Golden Oasis. This exceptional 5.0-star hotel is located in Dubai, United Arab Emirates, and boasts an impressive average score of 9.1/10. What sets it apart is its outstanding cleanliness, rated 9.3/10, unparalleled comfort at 9.5/10, and world-class facilities at 9.6/10. The Golden Oasis is the epitome of luxury and excellence, making it the top choice for your stay in Dubai.",0.4485471248626709,492,0.00038868,0.0,1
+RA_001,What are the highest rated hotels in Dubai?,Medium,RATING_ANALYSIS,qwen-32b,"The highest rated hotel in Dubai is **The Golden Oasis** (5.0 stars), located in the United Arab Emirates. It boasts an average score of **9.1/10**, with exceptional ratings for **cleanliness (9.3/10)**, **comfort (9.5/10)**, and **facilities (9.6/10)**. This hotel represents the curated top choice for Dubai in our database.",0.7921147346496582,650,0.00038350000000000005,0.0,1
+RA_002,Show me rating breakdown for 5-star hotels in Tokyo,Hard,RATING_ANALYSIS,llama-3.1-8b,"Based on our database, I highly recommend the Kyo-to Grand in Tokyo, Japan. This 5-star hotel has received an exceptional rating of 5.0 stars. 
+
+Here's a breakdown of its key features:
+
+- Location: Tokyo, Japan
+- Star Rating: 5.0 stars
+
+Unfortunately, the available data does not provide detailed information on cleanliness, comfort, and facilities for the Kyo-to Grand. However, its overall 5-star rating suggests that it meets high standards in these areas.",3.445112466812134,448,3.584e-05,0.0,1
+RA_002,Show me rating breakdown for 5-star hotels in Tokyo,Hard,RATING_ANALYSIS,llama-3.3-70b,"For 5-star hotels in Tokyo, I recommend the Kyo-to Grand, which boasts a perfect 5.0-star rating. Located in the heart of Tokyo, Japan, this exceptional hotel offers the highest level of luxury and excellence. With its impeccable reputation, you can expect outstanding cleanliness, comfort, and facilities. The Kyo-to Grand is the top choice for discerning travelers seeking a 5-star experience in Tokyo.",0.5472638607025146,430,0.0003397,0.0,1
+RA_002,Show me rating breakdown for 5-star hotels in Tokyo,Hard,RATING_ANALYSIS,qwen-32b,"In Tokyo, the top-rated 5-star hotel is **Kyo-to Grand** (5.0 stars). While specific rating breakdowns for cleanliness, comfort, and facilities are not included in the provided data, the hotel is recognized as a premier luxury option in the city.",2.0661697387695312,1162,0.00068558,0.0,1
+SQ_001,How many hotels are there in Paris?,Easy,STATISTICAL_QUERY,llama-3.1-8b,"There is 1 hotel in Paris that meets our high standards. 
+
+I highly recommend L'Étoile Palace, a 5.0-star hotel located in Paris, France. It boasts an impressive average score of 8.9/10. 
+
+Key features of this exceptional hotel include:
+
+- Cleanliness: 8.8/10
+- Comfort: 9.4/10
+- Facilities: 8.7/10
+
+L'Étoile Palace is an outstanding choice for your stay in Paris, offering a perfect blend of luxury and exceptional service.",2.735900640487671,501,4.008e-05,0.0,1
+SQ_001,How many hotels are there in Paris?,Easy,STATISTICAL_QUERY,llama-3.3-70b,"In Paris, there is one exceptional hotel that stands out: L'Étoile Palace. This 5.0-star hotel is located in the heart of Paris, France, and boasts an impressive average score of 8.9/10. Notably, L'Étoile Palace excels in comfort with a score of 9.4/10, while also receiving high marks for cleanliness at 8.8/10 and facilities at 8.7/10. If you're looking for a top-tier hotel experience in Paris, L'Étoile Palace is the premier choice.",0.5413472652435303,506,0.00039974,0.0,1
+SQ_001,How many hotels are there in Paris?,Easy,STATISTICAL_QUERY,qwen-32b,"There is **1 hotel** in Paris in our database:  
+
+**L'Étoile Palace**  
+- **Location**: Paris, France  
+- **Star Rating**: 5.0 stars  
+- **Average Score**: 8.9/10  
+- **Cleanliness**: 8.8/10  
+- **Comfort**: 9.4/10  
+- **Facilities**: 8.7/10  
+
+This is the only hotel listed for Paris in our curated dataset.",0.779839038848877,625,0.00036875000000000005,0.0,1
+SQ_002,What's the average rating of hotels in Singapore?,Medium,STATISTICAL_QUERY,llama-3.1-8b,"Based on the information provided, I can confidently recommend the Marina Bay Zenith hotel in Singapore. Here are the details:
+
+- Location: Singapore, Singapore
+- Star Rating: 5.0 stars
+
+Unfortunately, with only one hotel in our database for Singapore, we cannot provide an average rating for hotels in the city. However, I can assure you that the Marina Bay Zenith is a top-rated hotel with a 5.0-star rating, indicating exceptional cleanliness, comfort, and facilities.",4.4586851596832275,442,3.536e-05,20.0,1
+SQ_002,What's the average rating of hotels in Singapore?,Medium,STATISTICAL_QUERY,llama-3.3-70b,"In Singapore, the average rating of hotels is exceptionally high, with the top hotel, Marina Bay Zenith, boasting a perfect 5.0-star rating. This outstanding hotel is located in the heart of Singapore and offers unparalleled luxury and excellence. With its flawless 5.0-star rating, Marina Bay Zenith sets the standard for hotels in Singapore, ensuring an unforgettable experience for its guests.",0.4031949043273926,421,0.00033259,0.0,1
+SQ_002,What's the average rating of hotels in Singapore?,Medium,STATISTICAL_QUERY,qwen-32b,"The average rating of hotels in Singapore is **5.0 stars**, based on the top-rated hotel in our curated database:  
+
+**Marina Bay Zenith**  
+- **Location**: Singapore, Singapore  
+- **Star Rating**: 5.0 stars  
+
+This hotel represents Singapore's highest-rated accommodation, offering exceptional standards in service, amenities, and guest satisfaction.",2.216097354888916,919,0.00054221,0.0,1
+SQ_003,Give me statistics about 5-star hotels in Egypt,Hard,STATISTICAL_QUERY,llama-3.1-8b,"Based on our database, here are the statistics about 5-star hotels in Egypt:
+
+We have one top-rated 5-star hotel in Egypt, which is:
+
+1. **Nile Grandeur**:
+   - Location: Cairo, Egypt
+   - Star Rating: 5.0 stars
+   - Average Score: 8.8/10
+   - Cleanliness: 8.8/10
+   - Comfort: 8.7/10
+   - Facilities: 8.6/10
+
+This hotel stands out for its exceptional cleanliness, comfort, and overall rating, making it an excellent choice for travelers in Cairo.",0.39585137367248535,515,4.1200000000000005e-05,0.0,1
+SQ_003,Give me statistics about 5-star hotels in Egypt,Hard,STATISTICAL_QUERY,llama-3.3-70b,"For 5-star hotels in Egypt, I recommend the Nile Grandeur, located in Cairo. This exceptional hotel boasts a 5.0-star rating and has received outstanding reviews. Specifically, it has an average score of 8.8/10, with notable ratings in cleanliness (8.8/10), comfort (8.7/10), and facilities (8.6/10). The Nile Grandeur is the top choice for luxury accommodations in Cairo, offering the highest level of service and amenities.",0.5906496047973633,487,0.00038473,0.0,1
+SQ_003,Give me statistics about 5-star hotels in Egypt,Hard,STATISTICAL_QUERY,qwen-32b,"Based on our curated database, the **Nile Grandeur** in **Cairo, Egypt** is the top-rated 5-star hotel. It holds a **5.0-star rating** with an **average score of 8.8/10**, reflecting excellence in:  
+- **Cleanliness**: 8.8/10  
+- **Comfort**: 8.7/10  
+- **Facilities**: 8.6/10  
+
+This hotel represents the highest-rated accommodation in Egypt according to our authoritative dataset.",1.4045238494873047,848,0.0005003200000000001,0.0,1
+DR_001,Recommend a hotel for a 28-year-old female solo traveler in Paris,Hard,DEMOGRAPHIC_RECOMMENDATION,llama-3.1-8b,"Based on our curated database, I highly recommend the L'Étoile Palace for a 28-year-old female solo traveler in Paris. This 5.0-star hotel offers exceptional comfort with a rating of 9.4/10, ensuring a pleasant stay. The hotel's cleanliness is also noteworthy, with a rating of 8.8/10. Additionally, the L'Étoile Palace boasts a range of facilities, rated 8.7/10, making it an ideal choice for a solo traveler.",0.36933255195617676,486,3.888e-05,0.0,1
+DR_001,Recommend a hotel for a 28-year-old female solo traveler in Paris,Hard,DEMOGRAPHIC_RECOMMENDATION,llama-3.3-70b,"For a 28-year-old female solo traveler in Paris, I highly recommend L'Étoile Palace. This 5.0-star hotel is located in the heart of Paris, France, and offers exceptional quality. You can expect a cleanliness rating of 8.8/10, ensuring your stay is hygienic and comfortable. The comfort level is outstanding, with a rating of 9.4/10, providing you with a restful and rejuvenating experience. Additionally, the hotel's facilities have been rated 8.7/10, offering a well-rounded and satisfying stay. L'Étoile Palace is the perfect choice for your solo travel needs in Paris.",0.517423152923584,518,0.00040922,0.0,1
+DR_001,Recommend a hotel for a 28-year-old female solo traveler in Paris,Hard,DEMOGRAPHIC_RECOMMENDATION,qwen-32b,"L'Étoile Palace in Paris, France, is the top recommendation for a 28-year-old female solo traveler. This 5.0-star hotel excels in comfort (9.4/10) and cleanliness (8.8/10), with well-maintained facilities rated 8.7/10. Its prime location and high overall rating make it ideal for a safe, comfortable stay.",0.7859561443328857,638,0.00037642000000000003,0.0,1
+TP_001,Which hotels do business travelers prefer in London?,Hard,TRAVELER_PREFERENCE_QUERY,llama-3.1-8b,"Based on our database, we highly recommend The Royal Compass for business travelers in London. This 5.0-star hotel boasts exceptional cleanliness with a score of 9.0/10, providing a comfortable stay with a rating of 9.2/10. The hotel also offers a range of facilities with an average score of 8.8/10, making it an ideal choice for business travelers.",3.3966143131256104,465,3.72e-05,0.0,1
+TP_001,Which hotels do business travelers prefer in London?,Hard,TRAVELER_PREFERENCE_QUERY,llama-3.3-70b,"For business travelers in London, I highly recommend The Royal Compass. Located in London, United Kingdom, this exceptional 5.0-star hotel offers outstanding amenities and services. With an average score of 8.9/10, it excels in key areas such as cleanliness (9.0/10), comfort (9.2/10), and facilities (8.8/10). The Royal Compass is the top choice for business travelers in London, providing a luxurious and comfortable stay.",0.403062105178833,482,0.00038078,0.0,1
+TP_001,Which hotels do business travelers prefer in London?,Hard,TRAVELER_PREFERENCE_QUERY,qwen-32b,"Business travelers in London prefer **The Royal Compass**, a 5.0-star hotel with an exceptional average score of 8.9/10. Key features include outstanding cleanliness (9.0/10), superior comfort (9.2/10), and well-rated facilities (8.8/10). Located in the heart of London, it is the top curated choice for professional travelers seeking high-quality accommodations.",0.7862727642059326,603,0.00035577,0.0,1
+TP_002,Popular hotels for families in Sydney,Medium,TRAVELER_PREFERENCE_QUERY,llama-3.1-8b,"Based on our database, if you're looking for popular hotels for families in Sydney, I highly recommend the Sydney Harbour Grand. It's a 5.0-star hotel located in Sydney, Australia. This hotel stands out for its exceptional cleanliness, with a rating of 8.9/10, and offers a comfortable stay with a rating of 9.0/10. The hotel also provides a range of facilities, rated at 8.5/10.",4.409545421600342,463,3.7040000000000005e-05,0.0,1
+TP_002,Popular hotels for families in Sydney,Medium,TRAVELER_PREFERENCE_QUERY,llama-3.3-70b,"For a family trip to Sydney, I highly recommend the Sydney Harbour Grand. This 5.0-star hotel is located in the heart of Sydney, Australia, and offers an exceptional experience. With a cleanliness rating of 8.9/10, a comfort rating of 9.0/10, and facilities rated at 8.5/10, it is an ideal choice for families. The Sydney Harbour Grand is our top recommendation for Sydney, and its outstanding features make it a perfect fit for a family vacation.",0.9700100421905518,474,0.00037445999999999996,0.0,1
+TP_002,Popular hotels for families in Sydney,Medium,TRAVELER_PREFERENCE_QUERY,qwen-32b,"The Sydney Harbour Grand in Sydney, Australia, is an excellent family-friendly hotel with a 5.0-star rating. It excels in comfort (9.0/10) and offers strong cleanliness (8.9/10) and well-rated facilities (8.5/10). This top-tier hotel is our curated recommendation for families visiting Sydney.",0.8529865741729736,565,0.00033335,0.0,1
