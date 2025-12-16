@@ -1,0 +1,54 @@
+test_id,query,difficulty,intent,model,answer,response_time,tokens,cost,context_adherence,results_retrieved
+HS_001,Find 5-star hotels in Paris with excellent cleanliness,Easy,HOTEL_SEARCH,llama-3.1-8b,"Based on the provided context, I found one 5-star hotel in Paris that matches your criteria.
+
+There is only one hotel that meets the criteria: L'Étoile Palace. Here are the details:
+
+- Hotel Name: L'Étoile Palace
+- Location: Paris, France
+- Star Rating: 5.0 stars
+- Average Score: 8.9/10
+- Cleanliness: 8.8/10
+
+L'Étoile Palace stands out for its excellent cleanliness, with a rating of 8.8/10, and overall high ratings across all categories.",0.4506962299346924,463,3.7040000000000005e-05,0.0,1
+HS_001,Find 5-star hotels in Paris with excellent cleanliness,Easy,HOTEL_SEARCH,llama-3.3-70b,"Based on the provided context, I found one 5-star hotel in Paris with excellent cleanliness: L'Étoile Palace. It has a star rating of 5.0 stars, an average score of 8.9/10, and a cleanliness rating of 8.8/10. It is located in Paris, France. Unfortunately, the context only contains information about this one hotel, so I cannot provide multiple options.",0.3464469909667969,427,0.00033733,0.0,1
+HS_001,Find 5-star hotels in Paris with excellent cleanliness,Easy,HOTEL_SEARCH,qwen-32b,"Based on the provided context, the following hotel in Paris meets your criteria:
+
+**L'Étoile Palace**  
+- **Location**: Paris, France  
+- **Star Rating**: 5.0 stars  
+- **Cleanliness**: 8.8/10  
+- **Average Score**: 8.9/10  
+- **Comfort**: 9.4/10  
+- **Facilities**: 8.7/10  
+
+This hotel is the only 5-star option in the provided data with a strong cleanliness rating. Let me know if you'd like further details!",1.0325398445129395,749,0.00044191,0.0,1
+VI_001,Do I need a visa to travel from Egypt to France?,Easy,VISA_INQUIRY,llama-3.1-8b,"Based on the information provided in the context, you do need a visa to travel from Egypt to France. 
+
+Visa Required: YES
+Visa Type: Tourist Visa
+
+Please note that this information is based on the specific context provided and might not reflect the most up-to-date or comprehensive visa requirements. It is always recommended to verify visa requirements with the relevant authorities or consult the official government websites for the most accurate information.",0.3908863067626953,739,5.912e-05,0.0,10
+VI_001,Do I need a visa to travel from Egypt to France?,Easy,VISA_INQUIRY,llama-3.3-70b,"To travel from Egypt to France, a visa is required. The specific visa type needed is a Tourist Visa. This information is based on a structured search with a high similarity score of 0.834.",0.38690733909606934,695,0.0005490499999999999,0.0,10
+VI_001,Do I need a visa to travel from Egypt to France?,Easy,VISA_INQUIRY,qwen-32b,"Yes, a visa is required for travel from Egypt to France. The required visa type is a **Tourist Visa**.  
+
+**Countries involved**:  
+- **From**: Egypt  
+- **To**: France  
+
+This information is explicitly stated in the provided context (Source: Found in structured search AND semantic similarity, Similarity: 0.834). No additional details are needed for this specific route.",0.9712448120117188,953,0.00056227,25.0,10
+HC_001,Compare hotels in Paris vs London,Medium,HOTEL_COMPARISON,llama-3.1-8b,"Based on the information provided, we have a single hotel result from Paris, France. Since we're comparing hotels in Paris vs London, I'll provide information about the Paris hotel and note the lack of information about London hotels.
+
+The top hotel in Paris is L'Étoile Palace, with a 5.0-star rating and an average score of 8.9/10. This hotel excels in comfort, with a rating of 9.4/10, and has a high cleanliness rating of 8.8/10. It also has a decent facilities rating of 8.7/10.
+
+Unfortunately, we don't have any information about hotels in London to compare with L'Étoile Palace. The context only provides details about this single hotel in Paris. If you'd like to know more about hotels in London, I can try to assist you with a new search.",0.48775506019592285,515,4.1200000000000005e-05,0.0,1
+HC_001,Compare hotels in Paris vs London,Medium,HOTEL_COMPARISON,llama-3.3-70b,"Based on the provided context, I can only compare one hotel in Paris, as there is no information about hotels in London. The L'Étoile Palace in Paris has a 5.0-star rating, with an average score of 8.9/10. It excels in comfort with a score of 9.4/10, and has satisfactory cleanliness and facilities scores of 8.8/10 and 8.7/10, respectively. Unfortunately, I don't have enough information to compare hotels in Paris to those in London, as the context only contains data about one hotel in Paris.",0.5603201389312744,458,0.00036182,0.0,1
+HC_001,Compare hotels in Paris vs London,Medium,HOTEL_COMPARISON,qwen-32b,"The context provided contains information about only one hotel in Paris, **L'Étoile Palace**, with no data about hotels in London. Here's the available detail:  
+
+- **L'Étoile Palace (Paris)**:  
+  - **Star Rating**: 5.0 stars  
+  - **Average Score**: 8.9/10  
+  - **Cleanliness**: 8.8/10  
+  - **Comfort**: 9.4/10  
+  - **Facilities**: 8.7/10  
+
+No hotels in London are included in the provided context, so a direct comparison cannot be made. Additional data about London hotels would be required to complete this comparison.",1.0055382251739502,638,0.00037642000000000003,0.0,1
