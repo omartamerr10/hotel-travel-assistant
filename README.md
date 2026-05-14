@@ -48,4 +48,4 @@ streamlit run streamlit_app.py
 ## 🎓 Course
 
 Advanced Computer Lab 2 — German University in Cairo, Fall 2024  
-Team: Omar Tamer · Jaydaa Roushdy · Aly Sherif
+Team: Omar Tamer · Jaydaa Roushdy · Alya Sherif · Jana Amer
